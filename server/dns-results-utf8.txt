@@ -1,0 +1,6 @@
+Resolving SRV for: _mongodb._tcp.cluster0.m9ephgo.mongodb.net using 8.8.8.8
+✅ SRV Records found.
+
+--- Standard Connection String (Fallback) ---
+mongodb://internxindia:internx123@ac-ruj0gsp-shard-00-01.m9ephgo.mongodb.net:27017,ac-ruj0gsp-shard-00-02.m9ephgo.mongodb.net:27017,ac-ruj0gsp-shard-00-00.m9ephgo.mongodb.net:27017/psyx?ssl=true&replicaSet=atlas-m9ephgo-shard-0&authSource=admin&retryWrites=true&w=majority
+---------------------------------------------

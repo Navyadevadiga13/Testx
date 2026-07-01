@@ -1,0 +1,27 @@
+{
+  "name": "mern-project",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "client": "npm start --prefix client",
+    "server": "npm start --prefix server",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.3",
+    "morgan": "^1.10.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

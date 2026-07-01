@@ -1,0 +1,144 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FiCircle, FiUser, FiMenu, FiX } from "react-icons/fi";
+import { FaBrain } from "react-icons/fa";
+
+function Header({ isLoggedIn, showLogin, goProfile }) {
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToSection = (section) => {
+    setIsMenuOpen(false);
+    navigate("/", { state: { scrollTarget: section } });
+  };
+
+  return (
+    <header className={'header ${scrolled ? "scrolled" : ""}'}>
+      {/* Left Logo */}
+      <div className="header__logo" onClick={() => scrollToSection("home")}>
+        <div className="logo-icon">
+          <FaBrain size={26} color="#19fd91" />
+          <div className="logo-glow"></div>
+        </div>
+        <div className="logo-text">
+          <span className="logo-primary">Psy</span>
+          <span className="logo-accent">X</span>
+        </div>
+      </div>
+
+      {/* Desktop Navigation */}
+      <nav className="header__nav">
+        <div className="nav-links">
+          <button className="nav-btn" onClick={() => scrollToSection("home")}>
+            <span>Home</span>
+          </button>
+          <button className="nav-btn" onClick={() => scrollToSection("about")}>
+
+            <span>About</span>
+          </button>
+          <button className="nav-btn" onClick={() => navigate("/tests")}>
+            <span>Tests</span>
+          </button>
+          {/* <button className="nav-btn" onClick={() => scrollToSection("features")}>
+            <span>Features</span> */}
+          {/* </button> */}
+        </div>
+
+        {/* User Actions */}
+        <div className="header-actions">
+          {isLoggedIn ? (
+            <button className="profile-btn" onClick={goProfile}>
+              <FiUser size={20} />
+              <span>Profile</span>
+              <div className="profile-indicator"></div>
+            </button>
+          ) : (
+            <button className="login-btn" onClick={showLogin}>
+              <span className="btn-text">Login/SignUp</span>
+              <span className="btn-icon">→</span>
+              <div className="btn-glow"></div>
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {/* Mobile Menu Button */}
+      <button className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        {isMenuOpen ? <FiX size={28} /> : <FiMenu size={28} />}
+      </button>
+
+      {/* Mobile Menu */}
+      <div className={'mobile-menu ${isMenuOpen ? "open" : ""}'}>
+        <div className="mobile-menu-content">
+          <div className="mobile-logo">
+            <FaBrain size={30} color="#19fd91" />
+            <span>PsyX</span>
+          </div>
+
+          <div className="mobile-nav-links">
+            <button className="mobile-nav-btn" onClick={() => scrollToSection("home")}>
+              <span className="mobile-nav-icon"></span>
+              <span>Home</span>
+            </button>
+            <button className="mobile-nav-btn" onClick={() => scrollToSection("about")}>
+              <span className="mobile-nav-icon"></span>
+              <span>About</span>
+            </button>
+            <button className="mobile-nav-btn" onClick={() => navigate("/tests")}>
+              <span className="mobile-nav-icon"></span>
+              <span>Tests</span>
+            </button>
+            <button className="mobile-nav-btn" onClick={() => scrollToSection("features")}>
+              <span className="mobile-nav-icon"></span>
+              <span>Features</span>
+            </button>
+          </div>
+
+          <div className="mobile-actions">
+            {isLoggedIn ? (
+              <button className="mobile-profile-btn" onClick={goProfile}>
+                <FiUser size={22} />
+                <span>View Profile</span>
+              </button>
+            ) : (
+              <button className="mobile-login-btn" onClick={showLogin}>
+                <span>Start Assessment</span>
+                <span className="arrow">→</span>
+              </button>
+            )}
+          </div>
+
+          <div className="mobile-footer">
+            <p>Unlock your mind's potential</p>
+            <div className="mobile-social">
+              <span className="social-dot"></span>
+              <span className="social-dot"></span>
+              <span className="social-dot"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Neural Animation Background */}
+      <div className="header-neural-bg">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="neural-node" style={{
+            left:' ${10 + (i * 12)}%',
+            animationDelay: '${i * 0.2}s'
+          }}></div>
+        ))}
+      </div>
+    </header>
+  );
+}
+
+export default Header;
