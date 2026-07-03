@@ -55,7 +55,7 @@ function TestsSection({ isLoggedIn }) {
     {
       id: "toefl",
       title: "TOEFL Mock",
-      subtitle: "iBT Practice Test",
+      subtitle: "TOEFL Mock Test",
       icon: <FaUniversity />,
       buttons: [
         {

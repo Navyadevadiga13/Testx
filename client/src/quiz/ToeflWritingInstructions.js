@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPenFancy, FaClock, FaCheckCircle, FaArrowRight } from "react-icons/fa";
 
@@ -49,7 +49,7 @@ const ToeflWritingInstructions = () => {
                             color: "#111827",
                         }}
                     >
-                        TOEFL Writing Section
+                        TOEFL Writing Test
                     </h1>
 
                     <p
@@ -61,8 +61,7 @@ const ToeflWritingInstructions = () => {
                             lineHeight: "1.6",
                         }}
                     >
-                        In this section, you will write responses to demonstrate your ability to write
-                        in English in an academic setting.
+                        In this section, you will write an essay to demonstrate your ability to organize and express ideas clearly in written English.
                     </p>
                 </div>
 
@@ -100,9 +99,7 @@ const ToeflWritingInstructions = () => {
                         </div>
 
                         <p style={{ color: "#4b5563", margin: 0, lineHeight: "1.6" }}>
-                            The test contains two tasks. You will have approximately{" "}
-                            <strong>20 minutes</strong> for the Integrated task and{" "}
-                            <strong>10 minutes</strong> for the Academic Discussion task.
+                            You will have <strong>30 minutes</strong> to complete one essay-writing task.
                         </p>
                     </div>
 
@@ -126,13 +123,12 @@ const ToeflWritingInstructions = () => {
                         >
                             <FaCheckCircle size={24} />
                             <h3 style={{ margin: 0, color: "#111827" }}>
-                                Tasks
+                                Task
                             </h3>
                         </div>
 
                         <p style={{ color: "#4b5563", margin: 0, lineHeight: "1.6" }}>
-                            You will complete two writing tasks that evaluate your ability to
-                            summarize information and express opinions clearly.
+                            You will complete one essay-writing task that evaluates your ability to organize ideas, support arguments, and use English effectively.
                         </p>
                     </div>
                 </div>
@@ -191,7 +187,7 @@ const ToeflWritingInstructions = () => {
                                         color: "#111827",
                                     }}
                                 >
-                                    Integrated Writing
+                                    Essay Writing
                                 </td>
 
                                 <td
@@ -200,33 +196,7 @@ const ToeflWritingInstructions = () => {
                                         borderBottom: "1px solid #e5e7eb",
                                     }}
                                 >
-                                    Read a short passage and listen to a lecture. Then write a
-                                    response explaining how the lecture challenges the reading.
-                                    Minimum recommended length: <strong>150 words</strong>.
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td
-                                    style={{
-                                        padding: "1.2rem",
-                                        borderBottom: "1px solid #e5e7eb",
-                                        fontWeight: "600",
-                                        color: "#111827",
-                                    }}
-                                >
-                                    Academic Discussion
-                                </td>
-
-                                <td
-                                    style={{
-                                        padding: "1.2rem",
-                                        borderBottom: "1px solid #e5e7eb",
-                                    }}
-                                >
-                                    Write your opinion on an academic question and support your
-                                    answer with reasons and examples. Minimum recommended length:
-                                    <strong>120 words</strong>.
+                                    Write an essay on the assigned topic. Support your ideas with relevant reasons, examples, and details. Recommended length: <strong>250–300 words</strong>.
                                 </td>
                             </tr>
                         </tbody>

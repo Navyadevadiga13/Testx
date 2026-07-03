@@ -156,41 +156,42 @@ const ToeflReadingInstructions = () => {
                         About the PBT Reading Section
                     </h3>
 
-                    <ul
-                        style={{
-                            color: "#4b5563",
-                            lineHeight: "1.9",
-                            paddingLeft: "1.2rem",
-                            margin: 0,
-                        }}
-                    >
-                        <li>
-                            All passages are academic in nature – topics may
-                            include science, history, social studies, and the arts.
-                        </li>
+                 <ul
+    style={{
+        color: "#4b5563",
+        lineHeight: "1.9",
+        paddingLeft: "1.2rem",
+        margin: 0,
+    }}
+>
+    <li>
+        All passages are academic in nature and may cover topics such as
+        science, history, social studies, and the arts.
+    </li>
 
-                        <li>
-                            Each passage is followed by five multiple-choice
-                            questions. You may answer them in any order within
-                            that passage.
-                        </li>
+    <li>
+        Each passage is followed by five multiple-choice questions.
+    </li>
 
-                        <li>
-                            All information needed to answer the questions is
-                            contained in the passage – no outside knowledge is
-                            required.
-                        </li>
+    <li>
+        Read each passage carefully before answering the questions.
+    </li>
 
-                        <li>
-                            There is no penalty for guessing, so it is to your
-                            advantage to answer every question.
-                        </li>
+    <li>
+        All information needed to answer the questions is contained in the
+        passage. No outside knowledge is required.
+    </li>
 
-                        <li>
-                            You can move between passages using the Previous and
-                            Next buttons before finishing the test.
-                        </li>
-                    </ul>
+    <li>
+        There is no penalty for guessing, so answer every question even if
+        you are unsure.
+    </li>
+
+    <li>
+        Manage your time carefully and complete all 25 questions before the
+        time expires.
+    </li>
+</ul>
                 </div>
 
                 {/* Start Button */}

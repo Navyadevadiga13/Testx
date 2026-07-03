@@ -210,47 +210,47 @@ function ToeflListeningIntro() {
           </h2>
 
           <div className="conditions-box">
-            <ul className="conditions-list">
+          <ul className="conditions-list">
 
-              <li className="condition-item">
-                The test contains 25 listening questions.
-              </li>
+  <li className="condition-item">
+    The test contains 25 listening questions.
+  </li>
 
-              <li className="condition-item">
-                The listening test is divided into 3 parts:
-                <br />
-                Part A – Short Conversations
-                <br />
-                Part B – Longer Conversations
-                <br />
-                Part C – Lectures and Talks
-              </li>
+  <li className="condition-item">
+    The Listening Test is divided into three parts:
+    <br />
+    Part A – Short Conversations
+    <br />
+    Part B – Longer Conversations
+    <br />
+    Part C – Lectures and Talks
+  </li>
 
-              <li className="condition-item">
-                Click the "Play Audio Question" button to hear the conversation or lecture.
-              </li>
+  <li className="condition-item">
+    Click the "Play Audio" button to hear each conversation or lecture.
+  </li>
 
-              <li className="condition-item">
-                Each audio will play only once, so listen carefully.
-              </li>
+  <li className="condition-item">
+    Each audio recording will play only once, so listen carefully.
+  </li>
 
-              <li className="condition-item">
-                After listening, select the best answer from the four options provided.
-              </li>
+  <li className="condition-item">
+    After listening, select the best answer from the four options provided.
+  </li>
 
-              <li className="condition-item">
-                You must answer each question before moving to the next one.
-              </li>
+  <li className="condition-item">
+    You must answer each question before moving to the next one.
+  </li>
 
-              <li className="condition-item">
-                You cannot return to previous questions.
-              </li>
+  <li className="condition-item">
+    You cannot return to previous questions.
+  </li>
 
-              <li className="condition-item">
-                You have 35 minutes to complete the test.
-              </li>
+  <li className="condition-item">
+    You have 35 minutes to complete the test.
+  </li>
 
-            </ul>
+</ul>
           </div>
 
           <div className="button-group">

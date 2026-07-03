@@ -28,7 +28,14 @@ const readingModules = [
         passage: `The Industrial Revolution was a period of major industrialization that took place during the late 1700s and early 1800s. It began in Great Britain and quickly spread throughout the world. This time period saw the mechanization of agriculture and textile manufacturing, and a revolution in power, including steam ships and railroads, that affected social, cultural and economic conditions. Factories emerged, leading to urbanization as people moved to cities for work. Working conditions were often harsh, prompting the rise of labor movements.`,
         questions: [
           { id: 6, question: "Where did the Industrial Revolution begin?", options: ["United States", "France", "Great Britain", "Germany"], correct: 2 },
-          { id: 7, question: "Which of the following was NOT mentioned as being mechanized?", options: ["Agriculture", "Textile manufacturing", "Computer programming", "Transportation"], correct: 2 },
+          { id: 7, question: "Which of the following was NOT mentioned in the passage?",
+options: [
+  "Agriculture",
+  "Textile manufacturing",
+  "Computer programming",
+  "Steamships and railroads"
+],
+correct: 2 },
           { id: 8, question: "The word 'urbanization' in line 5 is closest in meaning to...", options: ["movement to rural areas", "growth of cities", "population decline", "industrial decline"], correct: 1 },
           { id: 9, question: "According to the passage, what contributed to the rise of labor movements?", options: ["Improved working conditions", "Harsh working conditions", "Government regulations", "Technological advances"], correct: 1 },
           { id: 10, question: "What is the main idea of the passage?", options: ["The Industrial Revolution had only positive effects.", "The Industrial Revolution brought major changes to society and the economy.", "The Industrial Revolution began in the United States.", "The Industrial Revolution ended in the 1700s."], correct: 1 }
@@ -57,7 +64,17 @@ const readingModules = [
           { id: 17, question: "During which dynasty were the most famous sections built?", options: ["Qin Dynasty", "Ming Dynasty", "Tang Dynasty", "Song Dynasty"], correct: 1 },
           { id: 18, question: "The word 'fortifications' in line 1 is closest in meaning to...", options: ["palaces", "defensive structures", "temples", "bridges"], correct: 1 },
           { id: 19, question: "Approximately how long is the Great Wall?", options: ["5,000 miles", "10,000 miles", "13,000 miles", "20,000 miles"], correct: 2 },
-          { id: 20, question: "Who built the Great Wall?", options: ["Only soldiers", "Only peasants", "Soldiers, peasants, and others", "Foreign laborers"], correct: 2 }
+         {
+  id: 20,
+  question: "Who built the Great Wall?",
+  options: [
+    "Only soldiers",
+    "Only peasants",
+    "Soldiers and peasants",
+    "Foreign laborers"
+  ],
+  correct: 2
+}
         ]
       },
       {
