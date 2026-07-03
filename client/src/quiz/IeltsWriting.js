@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSave, FiClock } from "react-icons/fi";
+import { FiSave, FiClock, FiAlertTriangle } from "react-icons/fi";
 import getApiBaseUrl from "../utils/api";
 
 const IELTS_DATA_WRITING = {
@@ -51,7 +51,24 @@ export default function IeltsWriting() {
   const [writingScore, setWritingScore] = useState(null);
   const [breakdown, setBreakdown] = useState(null); // { taskAchievement, coherence, lexical, grammar }
 
+  // ── Save status surfaced to the user instead of failing silently ──
+  // 'idle' | 'saving' | 'saved' | 'error' | 'no-auth'
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const [wasAutoSubmitted, setWasAutoSubmitted] = useState(false);
+
   const API_URL = getApiBaseUrl();
+
+  // ── FIXED: keep a ref mirroring the latest state so the timer's
+  // callback (registered once on mount) never operates on stale
+  // closures. Previously the auto-submit-on-timeout logic captured
+  // activeTask/responses from the very first render, so it always
+  // thought activeTask was 0 and responses were empty — meaning a
+  // real timeout NEVER actually calculated or saved a score, it just
+  // silently flipped to Task 2.
+  const latestRef = useRef({ activeTask, responses, submitted });
+  useEffect(() => {
+    latestRef.current = { activeTask, responses, submitted };
+  }, [activeTask, responses, submitted]);
 
   useEffect(() => {
 
@@ -61,7 +78,16 @@ export default function IeltsWriting() {
 
         if (prev <= 1) {
           clearInterval(timer);
-          setTimeout(() => handleSubmit(), 0);
+          // Force-submit with whatever the user has typed, regardless
+          // of which task tab they're on or word-count minimums — the
+          // real exam submits what you have when time's up.
+          setTimeout(() => {
+            const { responses: currentResponses, submitted: alreadySubmitted } = latestRef.current;
+            if (!alreadySubmitted) {
+              setWasAutoSubmitted(true);
+              finalizeAndSave(currentResponses, { force: true });
+            }
+          }, 0);
           return 0;
         }
 
@@ -72,7 +98,6 @@ export default function IeltsWriting() {
     }, 1000);
 
     return () => clearInterval(timer);
-
   }, []);
 
   const formatTime = (seconds) => {
@@ -90,22 +115,19 @@ export default function IeltsWriting() {
   const wordCount = getWordCount(responses[currentTask.id] || "");
 
   // ---------- CRITERION 1: TASK ACHIEVEMENT / RESPONSE ----------
-  // "Did you accurately address the prompt / cover all parts?"
   const scoreTaskAchievement = (text, task) => {
     const words = getWordCount(text);
     const lower = text.toLowerCase();
 
-    // length compliance
     let lengthScore;
     if (words < task.minWords * 0.6) lengthScore = 4;
     else if (words < task.minWords * 0.8) lengthScore = 5;
     else if (words < task.minWords) lengthScore = 5.5;
     else if (words < task.minWords * 1.6) lengthScore = 7;
-    else lengthScore = 6.5; // excessively long can hurt focus
+    else lengthScore = 6.5;
 
-    // topic relevance: how many prompt-related keywords actually appear
     const hits = task.keywords.filter(k => lower.includes(k)).length;
-    const relevance = hits / task.keywords.length; // 0 - 1
+    const relevance = hits / task.keywords.length;
 
     let relevanceScore;
     if (relevance < 0.2) relevanceScore = 4;
@@ -124,7 +146,6 @@ export default function IeltsWriting() {
   };
 
   // ---------- CRITERION 2: COHERENCE & COHESION ----------
-  // "Is it organized? Paragraphing, linking words without overuse?"
   const scoreCoherence = (text) => {
     const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
     const lower = text.toLowerCase();
@@ -136,13 +157,13 @@ export default function IeltsWriting() {
     if (paragraphs.length <= 1) paragraphScore = 4;
     else if (paragraphs.length === 2) paragraphScore = 5.5;
     else if (paragraphs.length >= 3 && paragraphs.length <= 5) paragraphScore = 7.5;
-    else paragraphScore = 6.5; // too fragmented
+    else paragraphScore = 6.5;
 
     let linkerScore;
     if (linkerCount === 0) linkerScore = 4.5;
     else if (linkerCount <= 2) linkerScore = 6;
     else if (linkerCount <= 5) linkerScore = 7.5;
-    else linkerScore = 6; // overuse penalized, matches "without overusing them"
+    else linkerScore = 6;
 
     const band = Number(((paragraphScore + linkerScore) / 2).toFixed(1));
     return {
@@ -154,13 +175,12 @@ export default function IeltsWriting() {
   };
 
   // ---------- CRITERION 3: LEXICAL RESOURCE ----------
-  // "Vocabulary range, natural collocations, spelling"
   const scoreLexical = (text) => {
     const words = text.toLowerCase().match(/[a-z']+/g) || [];
     if (words.length === 0) return { band: 4, note: "No content to assess." };
 
     const uniqueWords = new Set(words.filter(w => !STOPWORDS.has(w)));
-    const typeTokenRatio = uniqueWords.size / words.length; // vocabulary diversity
+    const typeTokenRatio = uniqueWords.size / words.length;
 
     const avgWordLength =
       words.reduce((sum, w) => sum + w.length, 0) / words.length;
@@ -188,10 +208,6 @@ export default function IeltsWriting() {
   };
 
   // ---------- CRITERION 4: GRAMMATICAL RANGE & ACCURACY ----------
-  // NOTE: True grammar-error detection needs a real grammar checker
-  // (e.g. LanguageTool API) or an LLM call. This heuristic only looks
-  // at sentence-structure variety as a rough proxy — it does NOT check
-  // actual grammatical correctness (tenses, subject-verb agreement, etc).
   const scoreGrammarHeuristic = (text) => {
     const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
     if (sentences.length === 0) return { band: 4, note: "No sentences to assess." };
@@ -203,13 +219,12 @@ export default function IeltsWriting() {
       lengths.reduce((sum, l) => sum + Math.pow(l - avgLen, 2), 0) / lengths.length;
     const stdDev = Math.sqrt(variance);
 
-    // presence of complex-sentence markers (subordinate clauses)
     const complexMarkers = ["because", "although", "since", "while", "if", "when", "which", "who", "that"];
     const lower = text.toLowerCase();
     const complexHits = complexMarkers.filter(m => lower.includes(` ${m} `)).length;
 
     let varietyScore;
-    if (stdDev < 3) varietyScore = 5; // sentences too uniform in length
+    if (stdDev < 3) varietyScore = 5;
     else if (stdDev < 6) varietyScore = 6.5;
     else varietyScore = 7.5;
 
@@ -236,25 +251,27 @@ export default function IeltsWriting() {
     return { overall, taskAchievement: ta, coherence: cc, lexical: lr, grammar: gra };
   };
 
-  const handleSubmit = async () => {
+  // ── Core scoring + save logic, decoupled from `activeTask` / manual
+  // button clicks so it behaves identically whether triggered by the
+  // user or by the timeout. Always uses the responses object passed in
+  // (never reads state directly), so it can never go stale.
+  //
+  // `force`: when true (timeout case), skips the 20-word minimum gate —
+  // time's up means you submit what you have, even if that's little or
+  // nothing, rather than silently discarding the attempt.
+  const finalizeAndSave = async (responsesSnapshot, { force = false } = {}) => {
+    if (latestRef.current.submitted) return;
 
-    if (submitted) return;
+    const words1 = getWordCount(responsesSnapshot.task1);
+    const words2 = getWordCount(responsesSnapshot.task2);
 
-    if (activeTask === 0) {
-      setActiveTask(1);
-      return;
-    }
-
-    const words1 = getWordCount(responses.task1);
-    const words2 = getWordCount(responses.task2);
-
-    if (words1 < 20 || words2 < 20) {
+    if (!force && (words1 < 20 || words2 < 20)) {
       alert("Please complete both tasks before submitting the test.");
       return;
     }
 
-    const result1 = scoreEssay(responses.task1, IELTS_DATA_WRITING.tasks[0]);
-    const result2 = scoreEssay(responses.task2, IELTS_DATA_WRITING.tasks[1]);
+    const result1 = scoreEssay(responsesSnapshot.task1 || "", IELTS_DATA_WRITING.tasks[0]);
+    const result2 = scoreEssay(responsesSnapshot.task2 || "", IELTS_DATA_WRITING.tasks[1]);
 
     const combined = {
       taskAchievement: Number(((result1.taskAchievement.band + result2.taskAchievement.band) / 2).toFixed(1)),
@@ -273,44 +290,67 @@ export default function IeltsWriting() {
 
     const token = localStorage.getItem("token");
 
-    if (token) {
-
-      try {
-
-        await fetch(`${API_URL}/tests/save`, {
-
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-
-          body: JSON.stringify({
-
-            testName: "IELTS Writing",
-
-            result: {
-              score: finalScore,
-              task1Band: result1.overall,
-              task2Band: result2.overall,
-              breakdown: combined,
-              essayTask1: responses.task1,
-              essayTask2: responses.task2,
-              wordCountTask1: words1,
-              wordCountTask2: words2
-            }
-
-          })
-
-        });
-
-      } catch (err) {
-        console.error("Save failed", err);
-      }
-
+    // ── FIXED: no more silent no-op when the user isn't authenticated.
+    // The score still displays, but the user is now told explicitly
+    // that it was NOT saved to their profile.
+    if (!token) {
+      setSaveStatus("no-auth");
+      return;
     }
 
+    setSaveStatus("saving");
+
+    try {
+      const res = await fetch(`${API_URL}/tests/save`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          testName: "IELTS Writing",
+          result: {
+            score: finalScore,
+            task1Band: result1.overall,
+            task2Band: result2.overall,
+            breakdown: combined,
+            essayTask1: responsesSnapshot.task1,
+            essayTask2: responsesSnapshot.task2,
+            wordCountTask1: words1,
+            wordCountTask2: words2
+          }
+        })
+      });
+
+      if (!res.ok) throw new Error(`Save failed with status ${res.status}`);
+
+      setSaveStatus("saved");
+    } catch (err) {
+      console.error("Save failed", err);
+      // ── FIXED: surfaced to the UI instead of only console.error,
+      // so a failed save is no longer indistinguishable from a
+      // successful one.
+      setSaveStatus("error");
+    }
+  };
+
+  // Manual submit button handler — still gates task navigation and
+  // word-count validation the way the original did, then delegates
+  // the actual scoring/saving to finalizeAndSave.
+  const handleManualSubmit = () => {
+    if (submitted) return;
+
+    if (activeTask === 0) {
+      setActiveTask(1);
+      return;
+    }
+
+    finalizeAndSave(responses, { force: false });
+  };
+
+  const retrySave = () => {
+    finalizeAndSave(responses, { force: true });
+    setSubmitted(false); // allow finalizeAndSave's submitted-guard to pass
   };
 
   return (
@@ -338,9 +378,57 @@ export default function IeltsWriting() {
             Band {writingScore}
           </h2>
 
-          <p style={{ color: "#374151", marginBottom: "20px" }}>
-            Your writing test has been successfully saved.
-          </p>
+          {wasAutoSubmitted && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "8px", justifyContent: "center",
+              background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412",
+              borderRadius: "8px", padding: "10px 14px", fontSize: "0.85rem", marginBottom: "16px"
+            }}>
+              <FiAlertTriangle />
+              Time ran out — this was auto-submitted with whatever you had written.
+            </div>
+          )}
+
+          {/* ── Save status, now visible instead of silent ── */}
+          {saveStatus === "saving" && (
+            <p style={{ color: "#6b7280", marginBottom: "20px" }}>Saving your result…</p>
+          )}
+
+          {saveStatus === "saved" && (
+            <p style={{ color: "#374151", marginBottom: "20px" }}>
+              Your writing test has been successfully saved.
+            </p>
+          )}
+
+          {saveStatus === "no-auth" && (
+            <div style={{
+              background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626",
+              borderRadius: "8px", padding: "12px 16px", fontSize: "0.85rem", marginBottom: "20px", textAlign: "left"
+            }}>
+              ⚠️ You're not logged in, so this score was <strong>not</strong> saved to your profile.
+              Log in and retake the test to keep a record of it.
+            </div>
+          )}
+
+          {saveStatus === "error" && (
+            <div style={{
+              background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626",
+              borderRadius: "8px", padding: "12px 16px", fontSize: "0.85rem", marginBottom: "20px", textAlign: "left"
+            }}>
+              ⚠️ We calculated your score, but saving it to your profile failed (network or server error).
+              <div style={{ marginTop: "10px" }}>
+                <button
+                  onClick={retrySave}
+                  style={{
+                    background: "#dc2626", color: "white", border: "none",
+                    padding: "6px 14px", borderRadius: "6px", fontWeight: 700, cursor: "pointer", fontSize: "0.8rem"
+                  }}
+                >
+                  Retry Save
+                </button>
+              </div>
+            </div>
+          )}
 
           {breakdown && (
             <div style={{ textAlign: "left", margin: "0 auto 20px auto", maxWidth: "450px" }}>
@@ -476,7 +564,7 @@ export default function IeltsWriting() {
               />
 
               <button
-                onClick={handleSubmit}
+                onClick={handleManualSubmit}
                 className="primary-btn"
                 disabled={wordCount < 5 || submitted}
               >
@@ -510,4 +598,4 @@ function BreakdownRow({ label, value }) {
       <span style={{ color: "#16a34a", fontWeight: 700 }}>{value}</span>
     </div>
   );
-}
+}s

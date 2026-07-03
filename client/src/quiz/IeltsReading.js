@@ -201,7 +201,7 @@ const IELTS_DATA_READING = {
   ]
 };
 
-// Flatten all items per passage for the nav panel
+// ── Flatten all items per passage for the nav panel ──
 function getFlatItems(passage) {
   const items = [];
   passage.questions.forEach(group => {
@@ -210,11 +210,56 @@ function getFlatItems(passage) {
   return items;
 }
 
-// Get passage question range label e.g. "1–13"
+// ── Get passage question range label e.g. "1–13" ──
 function getPassageRange(passage) {
   const allIds = passage.questions.flatMap(g => g.items.map(i => i.id));
   return `${Math.min(...allIds)}–${Math.max(...allIds)}`;
 }
+
+// ── SHARED ANSWER-CHECKING LOGIC ──
+// Used by BOTH calculateScore() and getResult() so scoring and the
+// on-screen ✅/❌ indicators can never disagree with each other.
+// Fixes the old bug where MCQ/matching answers were compared using
+// only their first character (charAt(0)) instead of the full string.
+function checkAnswer(userAnswerRaw, correctAnswerRaw) {
+  const userAns = (userAnswerRaw || "").trim().toLowerCase();
+  const correctAns = (correctAnswerRaw || "").trim().toLowerCase();
+
+  if (!userAns) return false;
+
+  // Support multiple acceptable answers separated by "/" e.g. "colour/color"
+  if (correctAns.includes("/")) {
+    const possibleAnswers = correctAns.split("/").map(a => a.trim());
+    return possibleAnswers.includes(userAns);
+  }
+
+  return userAns === correctAns;
+}
+
+// ── IELTS Academic Reading raw-score → band conversion ──
+function getBandScore(rawScore) {
+  if (rawScore >= 39) return 9.0;
+  if (rawScore >= 37) return 8.5;
+  if (rawScore >= 35) return 8.0;
+  if (rawScore >= 33) return 7.5;
+  if (rawScore >= 30) return 7.0;
+  if (rawScore >= 27) return 6.5;
+  if (rawScore >= 23) return 6.0;
+  if (rawScore >= 19) return 5.5;
+  if (rawScore >= 15) return 5.0;
+  if (rawScore >= 13) return 4.5;
+  if (rawScore >= 10) return 4.0;
+  if (rawScore >= 8) return 3.5;
+  if (rawScore >= 6) return 3.0;
+  if (rawScore >= 4) return 2.5;
+  return 2.0; // 0-3 correct → reported as Band 0-2.0
+}
+
+// ── Total question count derived from the actual data, never hardcoded ──
+const TOTAL_QUESTIONS = IELTS_DATA_READING.passages.reduce(
+  (sum, p) => sum + p.questions.reduce((s, g) => s + g.items.length, 0),
+  0
+);
 
 export default function IeltsReading() {
   const navigate = useNavigate();
@@ -222,6 +267,8 @@ export default function IeltsReading() {
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
+  const [bandScore, setBandScore] = useState(0);
+  const [questionAnalysis, setQuestionAnalysis] = useState([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   // active question id for scroll-to focus
   const [focusedQId, setFocusedQId] = useState(null);
@@ -231,19 +278,21 @@ export default function IeltsReading() {
 
   const currentPassage = IELTS_DATA_READING.passages[activePassage];
   const flatItems = getFlatItems(currentPassage);
-useEffect(() => {
-  const header = document.querySelector(".header");
 
-  if (header) {
-    header.style.display = "none";
-  }
+  useEffect(() => {
+    const header = document.querySelector(".header");
 
-  return () => {
     if (header) {
-      header.style.display = "flex";
+      header.style.display = "none";
     }
-  };
-}, []);
+
+    return () => {
+      if (header) {
+        header.style.display = "flex";
+      }
+    };
+  }, []);
+
   // Set first question as focused when passage changes
   useEffect(() => {
     if (flatItems.length > 0) {
@@ -262,7 +311,7 @@ useEffect(() => {
     setAnswers(prev => ({ ...prev, [qId]: value }));
   };
 
-  const saveTestResult = async (finalScore, totalQuestions, fullBreakdown) => {
+  const saveTestResult = async (finalScore, totalQuestions, fullBreakdown, band, analysis) => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
@@ -272,10 +321,14 @@ useEffect(() => {
         body: JSON.stringify({
           testName: "IELTS Reading",
           result: {
-            score: finalScore,
+            correctAnswers: finalScore,
+            incorrectAnswers: totalQuestions - finalScore,
+            rawScore: finalScore,
+            bandScore: band,
             total: totalQuestions,
             percentage: Math.round((finalScore / totalQuestions) * 100),
-            breakdown: fullBreakdown
+            breakdown: fullBreakdown,
+            questionAnalysis: analysis
           }
         })
       });
@@ -290,54 +343,54 @@ useEffect(() => {
     let newScore = 0;
     let totalQuestions = 0;
     const breakdown = {};
+    const analysis = [];
+
     IELTS_DATA_READING.passages.forEach(p => {
       p.questions.forEach(group => {
         group.items.forEach(item => {
           totalQuestions++;
-          const userAns = (answers[item.id] || "").trim().toLowerCase();
-          const correctAns = (item.answer || "").trim().toLowerCase();
-          let isCorrect = false;
-          if (group.type === "fill_blank" || group.type === "matching_paragraph") {
-            if (correctAns.includes("/")) {
-              const possibleAnswers = correctAns.split("/");
-              if (possibleAnswers.some(ans => userAns === ans.trim())) isCorrect = true;
-            } else {
-              if (userAns === correctAns) isCorrect = true;
-            }
-          } else {
-            if (userAns.charAt(0) === correctAns.charAt(0)) isCorrect = true;
-          }
+          const isCorrect = checkAnswer(answers[item.id], item.answer);
           if (isCorrect) newScore++;
           breakdown[item.id] = { user: answers[item.id], correct: item.answer, isCorrect };
+          analysis.push({
+            questionNumber: item.id,
+            studentAnswer: answers[item.id] || "",
+            correctAnswer: item.answer,
+            isCorrect
+          });
         });
       });
     });
+
+    const band = getBandScore(newScore);
+
     setScore(newScore);
+    setBandScore(band);
+    setQuestionAnalysis(analysis);
     setShowResult(true);
     window.scrollTo(0, 0);
-    saveTestResult(newScore, totalQuestions, breakdown);
+    saveTestResult(newScore, totalQuestions, breakdown, band, analysis);
   };
 
   // Check if a question is answered
   const isAnswered = (id) => answers[id] !== undefined && answers[id] !== "";
 
-  // Get result for a question
-  const getResult = (item, groupType) => {
+  // Get result for a question — now uses the SAME logic as calculateScore
+  const getResult = (item) => {
     if (!showResult) return null;
-    const userAns = (answers[item.id] || "").trim().toLowerCase();
-    const correctAns = (item.answer || "").trim().toLowerCase();
-    if (groupType === "mcq") return userAns.charAt(0) === correctAns.charAt(0);
-    return userAns === correctAns;
+    return checkAnswer(answers[item.id], item.answer);
   };
-const toggleFullscreen = async () => {
-  if (!document.fullscreenElement) {
-    await document.documentElement.requestFullscreen();
-    setIsFullscreen(true);
-  } else {
-    await document.exitFullscreen();
-    setIsFullscreen(false);
-  }
-};
+
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      await document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
   return (
     <div className="ielts-container">
   <style jsx>{`
@@ -351,19 +404,6 @@ const toggleFullscreen = async () => {
   background: #ffffff;
   padding: 10px;
 }
-
-    /* HEADER */
-    // .page-header {
-    //   max-width: 1500px;
-    //   margin: 0 auto 1rem;
-    //   width: 100%;
-    //   display: flex;
-    //   justify-content: space-between;
-    //   align-items: center;
-    //   border-bottom: 1px solid #d1fae5;
-    //   padding-bottom: 0.75rem;
-    //   flex-shrink: 0;
-    // }
 
     /* INSTRUCTIONS BANNER */
     .instructions-banner {
@@ -430,8 +470,8 @@ const toggleFullscreen = async () => {
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 
-  height: calc(100vh - 20px); /* IMPORTANT */
-  overflow: hidden;           /* IMPORTANT */
+  height: calc(100vh - 20px);
+  overflow: hidden;
 }
 
     /* PASSAGE PANEL */
@@ -970,7 +1010,7 @@ const toggleFullscreen = async () => {
   .ielts-container {
     padding: 10px;
   }
-}
+
       .instructions-grid {
         grid-template-columns: 1fr;
       }
@@ -988,7 +1028,10 @@ const toggleFullscreen = async () => {
           <div className="result-modal">
             <h2 style={{ fontSize: "1.6rem", fontWeight: 700, marginBottom: "0.5rem" }}>Test Complete!</h2>
             <div style={{ fontSize: "3.5rem", fontWeight: 800, color: "#19fd91", lineHeight: 1.1 }}>
-              {score} <span style={{ fontSize: "1.4rem", color: "#888" }}>/ 40</span>
+              {score} <span style={{ fontSize: "1.4rem", color: "#888" }}>/ {TOTAL_QUESTIONS}</span>
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#16a34a", marginTop: "0.35rem" }}>
+              Band {bandScore.toFixed(1)}
             </div>
             <p style={{ color: "#888", marginTop: "0.5rem", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
               Your performance has been saved
@@ -1012,21 +1055,6 @@ const toggleFullscreen = async () => {
           <span style={{ color: "#19fd91" }}>Reading</span>
         </h1>
       </div>
-
-      {/* INSTRUCTIONS
-      <div className="instructions-banner">
-        <div className="instructions-title">Reading Test Instructions</div>
-        <div className="instructions-grid">
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <div className="instruction-item"><span className="bullet">•</span><span>40 questions across three passages. Answer all questions from the passage text only.</span></div>
-            <div className="instruction-item"><span className="bullet">•</span><span>Use the number panel at the bottom to jump to any question quickly.</span></div>
-          </div>
-          <div className="instructions-right">
-            <div className="warning-title">Important:</div>
-            <div>Answer all questions based only on the information given in the passages.</div>
-          </div>
-        </div>
-      </div> */}
 
       {/* SPLIT LAYOUT */}
       <div className="split-layout">
@@ -1108,7 +1136,7 @@ const toggleFullscreen = async () => {
 
                 {group.items.map(item => {
                   const isFocused = focusedQId === item.id;
-                  const result = getResult(item, group.type);
+                  const result = getResult(item);
                   return (
                     <div
                       key={item.id}
@@ -1203,7 +1231,7 @@ const toggleFullscreen = async () => {
                   const focused = focusedQId === item.id;
                   let cls = "q-nav-btn";
                   if (showResult) {
-                    const res = getResult(item, item.groupType);
+                    const res = getResult(item);
                     cls += res ? " correct-result" : " wrong-result";
                   } else if (focused) {
                     cls += " focused";
