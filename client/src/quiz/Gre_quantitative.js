@@ -59,7 +59,7 @@ const section1Questions = [
         id: 9,
         question: "Dataset: 3,7,8,12,15,15,18. Compare Mean and Median.",
         options: ["Mean > Median", "Median > Mean", "Equal", "Cannot determine"],
-        answer: "Mean > Median"
+        answer: "Median > Mean"
     },
     {
         id: 10,
@@ -88,11 +88,11 @@ const section2Questions = [
         id: 13,
         question: "Let n = 2¹⁰. Compare number of factors of n and 10.",
         options: ["A>B", "B>A", "Equal", "Cannot determine"],
-        answer: "B>A"
+        answer: "A>B"
     },
     {
         id: 14,
-        question: "Solve √(x+6) + √(x−3) = 5.",
+        question: "Solve √(x+3) + √(x−2) = 5.",
         options: ["4", "5", "6", "7"],
         answer: "6"
     },
@@ -135,8 +135,8 @@ const section2Questions = [
     {
         id: 21,
         question: "From 8 students choose committee of 3 but two specific students cannot be together.",
-        options: ["48", "52", "56", "60"],
-        answer: "52"
+        options: ["48", "50", "56", "60"],
+        answer: "50"
     },
     {
         id: 22,
@@ -166,7 +166,7 @@ const section2Questions = [
         id: 26,
         question: "Compare 2⁵⁰ and 10¹⁵.",
         options: ["A>B", "B>A", "Equal", "Cannot determine"],
-        answer: "B>A"
+        answer: "A>B"
     },
     {
         id: 27,
