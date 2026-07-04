@@ -561,6 +561,39 @@ export default function IeltsListening() {
       (v) => v && v.toString().trim() !== ""
     ).length;
 
+  // Standard IELTS Listening raw-score-to-band conversion table.
+  // This is the widely published approximate scale used across
+  // official practice materials; actual test conversions can shift
+  // very slightly test-to-test, but this table is the standard
+  // reference used for self-marking practice tests.
+  const LISTENING_BAND_TABLE = [
+    { min: 39, max: 40, band: 9 },
+    { min: 37, max: 38, band: 8.5 },
+    { min: 35, max: 36, band: 8 },
+    { min: 32, max: 34, band: 7.5 },
+    { min: 30, max: 31, band: 7 },
+    { min: 26, max: 29, band: 6.5 },
+    { min: 23, max: 25, band: 6 },
+    { min: 18, max: 22, band: 5.5 },
+    { min: 16, max: 17, band: 5 },
+    { min: 13, max: 15, band: 4.5 },
+    { min: 10, max: 12, band: 4 },
+    { min: 8, max: 9, band: 3.5 },
+    { min: 6, max: 7, band: 3 },
+    { min: 4, max: 5, band: 2.5 },
+    { min: 0, max: 3, band: 2 },
+  ];
+
+  const getBandScore = (rawScore) => {
+    const row = LISTENING_BAND_TABLE.find(
+      (r) => rawScore >= r.min && rawScore <= r.max
+    );
+    return row ? row.band : 0;
+  };
+
+  const formatBand = (band) =>
+    Number.isInteger(band) ? band.toFixed(1) : band.toString();
+
   // ==========================================
   // START TEST
   // ==========================================
@@ -684,6 +717,7 @@ export default function IeltsListening() {
             score: finalScore,
             total,
             percentage: Math.round((finalScore / total) * 100) + "%",
+            band: getBandScore(finalScore),
             breakdown,
           },
         }),
@@ -1670,6 +1704,31 @@ export default function IeltsListening() {
     font-weight:800;
   }
 
+  .il-result-band{
+    display:inline-flex;
+    align-items:baseline;
+    gap:8px;
+    margin-top:10px;
+    background:#ecfdf5;
+    border:1px solid #bbf7d0;
+    padding:10px 22px;
+    border-radius:999px;
+  }
+
+  .il-result-band-label{
+    font-size:13px;
+    font-weight:700;
+    color:#047857;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
+
+  .il-result-band-value{
+    font-size:26px;
+    font-weight:800;
+    color:#047857;
+  }
+
   .il-result-btn{
     margin-top:20px;
     background:#10b981;
@@ -1998,6 +2057,15 @@ export default function IeltsListening() {
               <div>
                 {Math.round((score / 40) * 100)}%
                 correct
+              </div>
+
+              <div className="il-result-band">
+                <span className="il-result-band-label">
+                  Band Score
+                </span>
+                <span className="il-result-band-value">
+                  {formatBand(getBandScore(score))}
+                </span>
               </div>
 
               {saveStatus === "saved" && (
