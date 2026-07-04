@@ -79,7 +79,7 @@ const IELTS_DATA_LISTENING = {
               id: "q9",
               text: "Address: No. 9 Green Drive, ______ , NY21300.",
               type: "fill_blank",
-              answer: "cliffside",
+              answer: ["cliffside", "cliff side"],
             },
             {
               id: "q10",
@@ -356,9 +356,20 @@ export default function IeltsListening() {
   const [hasStarted, setHasStarted] = useState(false);
   const [audioError, setAudioError] = useState("");
   const [timeLeft, setTimeLeft] = useState(30 * 60);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [audioPlayError, setAudioPlayError] = useState(null);
+  const [saveStatus, setSaveStatus] = useState(null);
+  const [announcement, setAnnouncement] = useState("");
 
   const audioRefs = useRef({});
+  const answersRef = useRef({});
+  const audioLastTimeRef = useRef({});
+  const hasSubmittedRef = useRef(false);
   const API_URL = getApiBaseUrl();
+
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
 
   // ==========================================
   // TIMER
@@ -368,35 +379,51 @@ export default function IeltsListening() {
 
     if (hasStarted && !showResult) {
       timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            handleCalculateScore();
-            return 0;
-          }
-
-          return prev - 1;
-        });
+        setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
       }, 1000);
     }
 
     return () => clearInterval(timer);
   }, [hasStarted, showResult]);
 
+  // Auto-submit is triggered from its own effect (not from inside the
+  // setTimeLeft updater above) so it can never fire twice — updater
+  // functions passed to setState can be invoked more than once by React
+  // (e.g. under StrictMode), which would otherwise risk double-scoring
+  // and a duplicate save request.
+  useEffect(() => {
+    if (hasStarted && !showResult && timeLeft === 0) {
+      handleCalculateScore();
+    }
+  }, [timeLeft, hasStarted, showResult]);
+
+  // Spoken/announced time checkpoints for screen readers
+  useEffect(() => {
+    if (timeLeft === 300) setAnnouncement("Five minutes remaining.");
+    else if (timeLeft === 60) setAnnouncement("One minute remaining.");
+  }, [timeLeft]);
+
   // ==========================================
   // AUTO PLAY NEXT AUDIO
   // ==========================================
   useEffect(() => {
-    const audios = Object.values(audioRefs.current);
+    const sectionIds = IELTS_DATA_LISTENING.sections.map((s) => s.id);
 
-    audios.forEach((audio, index) => {
+    sectionIds.forEach((id, index) => {
+      const audio = audioRefs.current[id];
       if (!audio) return;
 
       audio.onended = () => {
-        const nextAudio = audios[index + 1];
+        const nextId = sectionIds[index + 1];
+        const nextAudio = nextId && audioRefs.current[nextId];
 
         if (nextAudio) {
-          nextAudio.play().catch(() => {});
+          nextAudio.play().catch(() => {
+            // Autoplay was blocked (or the file is missing) — surface
+            // it instead of leaving the timer running in silence with
+            // no way for the person to continue.
+            setAudioPlayError(nextId);
+          });
         }
       };
     });
@@ -411,12 +438,128 @@ export default function IeltsListening() {
     return `${m}:${String(sec).padStart(2, "0")}`;
   };
 
-  const normalize = (t) =>
+  const normalizeLoose = (t) =>
     (t || "")
       .toString()
       .trim()
       .toLowerCase()
       .replace(/[^\w]/g, "");
+
+  // Token-preserving normalization: strips punctuation from each word but
+  // keeps word boundaries intact. This matters because normalizeLoose
+  // collapses ALL whitespace before comparing, which means a test-taker
+  // could type "c l i f f s i d e" and have it silently match "cliffside" —
+  // defeating word-count limits entirely, since any extra word can be
+  // "hidden" by mashing it against its neighbour. Word-type answers must
+  // be compared word-by-word so the word count is real and can't be gamed.
+  const normalizeStrict = (t) =>
+    (t || "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w.replace(/[^\w]/g, ""))
+      .join(" ");
+
+  const countWords = (t) =>
+    (t || "").toString().trim().split(/\s+/).filter(Boolean).length;
+
+  // Numeric-style answers (phone numbers, postcodes, addresses) get
+  // flexible spacing/punctuation on purpose — "866 4428" and "866-4428"
+  // are the same answer, and that's a formatting convention, not a
+  // word-count violation.
+  const isNumericAnswer = (s) => {
+    const str = (s || "").toString().trim();
+    return /\d/.test(str) && /^[\d\s\-()+.]+$/.test(str);
+  };
+
+  const normalize = normalizeLoose;
+
+  // Single source of truth for fill-blank grading. Returns "correct",
+  // "over_limit" (right content, too many words — a real IELTS miss but
+  // worth explaining differently), or "incorrect".
+  const getFillBlankFeedback = (userRaw, correctField, maxWords) => {
+    const correctList = Array.isArray(correctField)
+      ? correctField
+      : [correctField];
+    const userWordCount = countWords(userRaw);
+
+    for (const c of correctList) {
+      const numeric = isNumericAnswer(c);
+
+      const matches = numeric
+        ? normalizeLoose(userRaw) === normalizeLoose(c)
+        : normalizeStrict(userRaw) === normalizeStrict(c);
+
+      if (!matches) continue;
+
+      if (!maxWords || numeric) return "correct";
+
+      const alternativeWordCount = countWords(c);
+      if (userWordCount <= Math.max(maxWords, alternativeWordCount)) {
+        return "correct";
+      }
+
+      return "over_limit";
+    }
+
+    return "incorrect";
+  };
+
+  const checkAnswerMatch = (userRaw, correctField, maxWords) =>
+    getFillBlankFeedback(userRaw, correctField, maxWords) === "correct";
+
+  const displayAnswer = (correctField) =>
+    Array.isArray(correctField) ? correctField[0] : correctField;
+
+  const WORD_NUM = { ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5 };
+
+  const getMaxWords = (instruction) => {
+    if (!instruction) return null;
+
+    // "AND/OR A NUMBER" means the answer may be the word, the number, or
+    // both together (e.g. a real answer key expecting "5 July" — a word
+    // plus a number, two tokens). Treating this as a hard one-word limit
+    // would wrongly reject a genuinely correct two-token answer.
+    const allowsExtraNumber = /AND\s*\/?\s*OR\s*A\s*NUMBER/i.test(
+      instruction
+    );
+
+    let base = null;
+
+    const noMoreThan = instruction.match(
+      /NO MORE THAN (ONE|TWO|THREE|FOUR|FIVE) WORDS?/i
+    );
+    if (noMoreThan) {
+      base = WORD_NUM[noMoreThan[1].toUpperCase()];
+    } else {
+      const wordLimit = instruction.match(
+        /\b(ONE|TWO|THREE|FOUR|FIVE) WORDS?\b/i
+      );
+      if (wordLimit) base = WORD_NUM[wordLimit[1].toUpperCase()];
+    }
+
+    if (base === null) return null;
+
+    return allowsExtraNumber ? base + 1 : base;
+  };
+
+  const getTotalQuestions = () =>
+    IELTS_DATA_LISTENING.sections.reduce(
+      (acc, sec) =>
+        acc +
+        sec.questionGroups.reduce(
+          (a2, grp) => a2 + grp.questions.length,
+          0
+        ),
+      0
+    );
+
+  const getAnsweredCount = () =>
+    Object.values(answers).filter(
+      (v) => v && v.toString().trim() !== ""
+    ).length;
 
   // ==========================================
   // START TEST
@@ -439,6 +582,10 @@ export default function IeltsListening() {
             "Audio file not found. Please check /public/audio/test1.mp3"
           );
         });
+    } else {
+      setAudioError(
+        "Could not initialize the audio player. Please refresh and try again."
+      );
     }
   };
 
@@ -456,29 +603,35 @@ export default function IeltsListening() {
   // SCORE
   // ==========================================
   const handleCalculateScore = () => {
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+
     let s = 0;
     let total = 0;
 
     const breakdown = {};
+    const currentAnswers = answersRef.current;
 
     IELTS_DATA_LISTENING.sections.forEach((sec) => {
       sec.questionGroups.forEach((grp) => {
+        const maxWords = getMaxWords(grp.instruction);
+
         grp.questions.forEach((item) => {
           total++;
 
-          const user = normalize(answers[item.id]);
-          const correct = normalize(item.answer);
+          const userVal = currentAnswers[item.id];
 
           const isCorrect =
             item.type === "mcq" || item.type === "map"
-              ? user.charAt(0) === correct.charAt(0)
-              : user === correct;
+              ? normalize(userVal).charAt(0) ===
+                normalize(item.answer).charAt(0)
+              : checkAnswerMatch(userVal, item.answer, maxWords);
 
           if (isCorrect) s++;
 
           breakdown[item.id] = {
-            user: answers[item.id] || "",
-            correct: item.answer,
+            user: userVal || "",
+            correct: displayAnswer(item.answer),
             isCorrect,
           };
         });
@@ -496,16 +649,30 @@ export default function IeltsListening() {
     saveResult(s, total, breakdown);
   };
 
+  const handleSubmitClick = () => {
+    const total = getTotalQuestions();
+    const answered = getAnsweredCount();
+
+    if (answered < total) {
+      setShowSubmitConfirm(true);
+    } else {
+      handleCalculateScore();
+    }
+  };
+
   // ==========================================
   // SAVE RESULT
   // ==========================================
   const saveResult = async (finalScore, total, breakdown) => {
     const token = localStorage.getItem("token");
 
-    if (!token) return;
+    if (!token) {
+      setSaveStatus("skipped");
+      return;
+    }
 
     try {
-      await fetch(`${API_URL}/tests/save`, {
+      const res = await fetch(`${API_URL}/tests/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -521,26 +688,44 @@ export default function IeltsListening() {
           },
         }),
       });
+
+      setSaveStatus(res.ok ? "saved" : "failed");
     } catch (err) {
       console.error(err);
+      setSaveStatus("failed");
     }
   };
 
   // ==========================================
   // QUESTION
   // ==========================================
-  const renderQuestion = (item) => {
+  const renderQuestion = (item, maxWords) => {
     const userAns = normalize(answers[item.id]);
-    const correctAns = normalize(item.answer);
+    const correctAns = normalize(displayAnswer(item.answer));
 
     let isCorrect = false;
+    let fillBlankReason = null;
 
     if (showResult) {
-      isCorrect =
-        item.type === "mcq" || item.type === "map"
-          ? userAns.charAt(0) === correctAns.charAt(0)
-          : userAns === correctAns;
+      if (item.type === "mcq" || item.type === "map") {
+        isCorrect = userAns.charAt(0) === correctAns.charAt(0);
+      } else {
+        fillBlankReason = getFillBlankFeedback(
+          answers[item.id],
+          item.answer,
+          maxWords
+        );
+        isCorrect = fillBlankReason === "correct";
+      }
     }
+
+    const wordCount = (answers[item.id] || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+
+    const overWordLimit =
+      !showResult && maxWords && wordCount > maxWords;
 
     return (
       <div className="il-question" key={item.id}>
@@ -572,7 +757,9 @@ export default function IeltsListening() {
                         </span>
                       ) : (
                         <input
-                          className="il-input"
+                          className={`il-input ${
+                            overWordLimit ? "il-input-warning" : ""
+                          }`}
                           type="text"
                           value={answers[item.id] || ""}
                           onChange={(e) =>
@@ -582,6 +769,13 @@ export default function IeltsListening() {
                       ))}
                   </span>
                 ))}
+
+                {overWordLimit && (
+                  <div className="il-word-warning">
+                    Max {maxWords} word{maxWords > 1 ? "s" : ""}{" "}
+                    allowed — you typed {wordCount}.
+                  </div>
+                )}
               </div>
             )}
 
@@ -647,7 +841,18 @@ export default function IeltsListening() {
             {/* REVEAL */}
             {showResult && !isCorrect && (
               <div className="il-answer-reveal">
-                Correct answer: <strong>{item.answer}</strong>
+                {fillBlankReason === "over_limit" ? (
+                  <>
+                    Your answer had the right idea but used too many
+                    words (limit: {maxWords}). Correct answer:{" "}
+                    <strong>{displayAnswer(item.answer)}</strong>
+                  </>
+                ) : (
+                  <>
+                    Correct answer:{" "}
+                    <strong>{displayAnswer(item.answer)}</strong>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -893,6 +1098,24 @@ export default function IeltsListening() {
     border-radius:999px;
   }
 
+  .il-timer-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .il-progress-pill{
+    font-size:13px;
+    font-weight:700;
+    color:#047857;
+    background:#f0fdf4;
+    border:1px solid #bbf7d0;
+    padding:9px 16px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
   .warning{
     color:#dc2626;
   }
@@ -1012,6 +1235,81 @@ export default function IeltsListening() {
     min-width:220px;
   }
 
+  .il-audio-note{
+    width:100%;
+    font-size:12px;
+    font-weight:400;
+    color:#9ca3af;
+  }
+
+  .il-audio-error{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    background:#fef2f2;
+    border:1px solid #fecaca;
+    color:#dc2626;
+    padding:10px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+  }
+
+  .il-audio-retry-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:#dc2626;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .il-audio-retry-btn:hover{
+    background:#b91c1c;
+  }
+
+  .il-save-note{
+    margin-top:14px;
+    font-size:13px;
+    font-weight:600;
+    padding:10px 14px;
+    border-radius:10px;
+  }
+
+  .il-save-note.saved{
+    background:#ecfdf5;
+    color:#047857;
+  }
+
+  .il-save-note.failed{
+    background:#fef2f2;
+    color:#dc2626;
+  }
+
+  .il-save-note.skipped{
+    background:#f9fafb;
+    color:#6b7280;
+  }
+
+  .il-sr-only{
+    position:absolute;
+    width:1px;
+    height:1px;
+    padding:0;
+    margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
+  }
+
   .il-group{
     padding:24px;
   }
@@ -1102,6 +1400,18 @@ export default function IeltsListening() {
 
   .il-input:focus{
     border-color:#047857;
+  }
+
+  .il-input-warning{
+    border-bottom-color:#dc2626;
+    background:#fef2f2;
+  }
+
+  .il-word-warning{
+    margin-top:8px;
+    font-size:12px;
+    font-weight:700;
+    color:#dc2626;
   }
 
   /* =========================
@@ -1540,13 +1850,23 @@ export default function IeltsListening() {
     }
   }
 `}</style>
-          <div
-            className={`il-timer-clock ${
-              timeLeft < 300 ? "warning" : ""
-            }`}
-          >
-            <FiClock />
-            {formatTime(timeLeft)}
+          <div className="il-timer-right">
+            <div className="il-progress-pill">
+              {getAnsweredCount()}/{getTotalQuestions()} answered
+            </div>
+
+            <div
+              className={`il-timer-clock ${
+                timeLeft < 300 ? "warning" : ""
+              }`}
+            >
+              <FiClock />
+              {formatTime(timeLeft)}
+            </div>
+          </div>
+
+          <div aria-live="polite" className="il-sr-only">
+            {announcement}
           </div>
         </div>
 
@@ -1575,7 +1895,8 @@ export default function IeltsListening() {
 
                 <div className="il-rules">
                   <div className="il-rule">
-                    • Audio plays once only
+                    • Audio plays once only — you cannot rewind or
+                    skip ahead, just like the real test
                   </div>
 
                   <div className="il-rule">
@@ -1594,6 +1915,56 @@ export default function IeltsListening() {
                   <FiPlay />
                   Start Test
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* SUBMIT CONFIRM OVERLAY */}
+          {showSubmitConfirm && (
+            <div className="il-overlay">
+              <div className="il-start-card">
+                <div className="il-start-icon">
+                  <FiAlertTriangle />
+                </div>
+
+                <h2>Unanswered Questions</h2>
+
+                <p>
+                  You still have{" "}
+                  {getTotalQuestions() - getAnsweredCount()} question
+                  {getTotalQuestions() - getAnsweredCount() === 1
+                    ? ""
+                    : "s"}{" "}
+                  unanswered. In the real IELTS test you cannot go
+                  back once time is up — submit anyway?
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    marginTop: "20px",
+                  }}
+                >
+                  <button
+                    className="il-result-btn"
+                    style={{ flex: 1, background: "#6b7280", marginTop: 0 }}
+                    onClick={() => setShowSubmitConfirm(false)}
+                  >
+                    Go Back
+                  </button>
+
+                  <button
+                    className="il-result-btn"
+                    style={{ flex: 1, marginTop: 0 }}
+                    onClick={() => {
+                      setShowSubmitConfirm(false);
+                      handleCalculateScore();
+                    }}
+                  >
+                    Submit Anyway
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1628,6 +1999,25 @@ export default function IeltsListening() {
                 {Math.round((score / 40) * 100)}%
                 correct
               </div>
+
+              {saveStatus === "saved" && (
+                <div className="il-save-note saved">
+                  Result saved to your account.
+                </div>
+              )}
+
+              {saveStatus === "failed" && (
+                <div className="il-save-note failed">
+                  Your score above is accurate, but it couldn't be
+                  saved to your account. Please check your connection.
+                </div>
+              )}
+
+              {saveStatus === "skipped" && (
+                <div className="il-save-note skipped">
+                  Sign in next time to keep a history of your scores.
+                </div>
+              )}
 
               <button
                 className="il-result-btn"
@@ -1666,27 +2056,71 @@ export default function IeltsListening() {
                     src={section.audioSrc}
                     controls
                     controlsList="nodownload noplaybackrate"
+                    onTimeUpdate={(e) => {
+                      audioLastTimeRef.current[section.id] =
+                        e.target.currentTime;
+                    }}
+                    onSeeking={(e) => {
+                      const last =
+                        audioLastTimeRef.current[section.id] || 0;
+
+                      if (
+                        Math.abs(e.target.currentTime - last) > 1.5
+                      ) {
+                        e.target.currentTime = last;
+                      }
+                    }}
                   />
+
+                  <span className="il-audio-note">
+                    No rewind or skip-ahead — just like the real exam
+                  </span>
+
+                  {audioPlayError === section.id && (
+                    <div className="il-audio-error">
+                      <FiAlertTriangle />
+                      <span>Audio didn't start automatically.</span>
+                      <button
+                        type="button"
+                        className="il-audio-retry-btn"
+                        onClick={() => {
+                          const audio = audioRefs.current[section.id];
+                          if (audio) {
+                            audio
+                              .play()
+                              .then(() => setAudioPlayError(null))
+                              .catch(() => {});
+                          }
+                        }}
+                      >
+                        <FiPlay /> Play Part {sIdx + 1}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* GROUPS */}
                 {section.questionGroups.map(
-                  (grp, gIdx) => (
-                    <div
-                      className="il-group"
-                      key={gIdx}
-                    >
-                      <div className="il-instruction">
-                        {grp.instruction}
-                      </div>
+                  (grp, gIdx) => {
+                    const maxWords = getMaxWords(grp.instruction);
 
-                      {grp.mapOptions
-                        ? renderMapGroup(grp)
-                        : grp.questions.map((item) =>
-                            renderQuestion(item)
-                          )}
-                    </div>
-                  )
+                    return (
+                      <div
+                        className="il-group"
+                        key={gIdx}
+                      >
+                        <div className="il-instruction">
+                          {grp.instruction}
+                        </div>
+
+                        {grp.mapOptions
+                          ? renderMapGroup(grp)
+                          : grp.questions.map((item) =>
+                              renderQuestion(item, maxWords)
+                            )}
+                      </div>
+                    );
+                  }
                 )}
               </div>
             )
@@ -1697,7 +2131,7 @@ export default function IeltsListening() {
             <div className="il-submit-area">
               <button
                 className="il-submit-btn"
-                onClick={handleCalculateScore}
+                onClick={handleSubmitClick}
               >
                 Submit Test
                 <FiSave />

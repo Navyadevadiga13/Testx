@@ -31,31 +31,51 @@ const IELTS_DATA_READING = {
 
 (G) Until the time of his death in October 1953, Saunders was developing plans for another automatic store system called the Foodelectric. But the store, which was to be located two blocks from the first Piggly Wiggly store, never opened. But his name was well-remembered along with the name Piggly Wiggly.`,
       questions: [
-        {
+{
           id: "q1_5",
-          instruction: "Questions 1-5: The reading Passage has seven paragraphs A-G. Which paragraph contains the following information?",
+          instruction: "Questions 1-5: The reading Passage has seven paragraphs, A-G. Which paragraph contains the following information?\nNB You may use any letter more than once.",
           type: "matching_paragraph",
           options: ["A", "B", "C", "D", "E", "F", "G"],
           items: [
-            { id: 1, text: ") How Clarence Saunders' new idea had been carried out.", answer: "C" },
-            { id: 2, text: ") Introducing the modes and patterns of groceries before his age.", answer: "A" },
-            { id: 3, text: ") Clarence Saunders declared bankruptcy a few years later.", answer: "F" },
-            { id: 4, text: ") Descriptions of Clarence Saunders' new conception.", answer: "C" },
-            { id: 5, text: ") The booming development of his business.", answer: "E" }
+            { id: 1, text: "How Clarence Saunders' new idea had been carried out.", answer: "D" },
+            { id: 2, text: "Introducing the modes and patterns of groceries before his age.", answer: "A" },
+            { id: 3, text: "Clarence Saunders declared bankruptcy a few years later.", answer: "F" },
+            { id: 4, text: "Descriptions of Clarence Saunders' new conception.", answer: "C" },
+            { id: 5, text: "The booming development of his business.", answer: "E" }
           ]
         },
-        {
-          id: "q6_10",
-          instruction: "Questions 6-10: Answer the questions below. Write ONLY ONE WORD OR A NUMBER.",
-          type: "fill_blank",
-          items: [
-            { id: 6, text: ") When Clarence Saunders was an adolescent, he took a job as a ______ in a grocery store.", answer: "clerk" },
-            { id: 7, text: ") In the new innovation of grocery store, most of the clerks' work before was done by ______.", answer: "shoppers" },
-            { id: 8, text: ") In Saunders' new grocery store, the section where customers finish the payment was called ______.", answer: "lobby" },
-            { id: 9, text: ") Another area in his store which behind the public area was called the ______ where only internal staff could access.", answer: "stockroom" },
-            { id: 10, text: ") At ______ where customers were under surveillance.", answer: "galleries" }
-          ]
-        },
+{
+  id: "q6_10",
+  instruction: "Questions 6-10: Complete the sentences below. Choose ONLY ONE WORD from the passage for each answer.",
+  type: "fill_blank",
+  items: [
+    { 
+      id: 6, 
+      text: "When Clarence Saunders was an adolescent, he took a job as a ______ in a grocery store.", 
+      answer: "clerk" 
+    },
+    { 
+      id: 7, 
+      text: "Saunders' revolutionary retail concept fundamentally allowed shoppers to ______ themselves.", 
+      answer: "serve" 
+    },
+    { 
+      id: 8, 
+      text: "In the new grocery store format, the front area containing the checkouts was called the ______.", 
+      answer: "lobby" 
+    },
+    { 
+      id: 9, 
+      text: "Perishable items were prevented from spoiling inside large refrigerators located in the store's ______.", 
+      answer: "stockroom" 
+    },
+    { 
+      id: 10, 
+      text: "Supervisors could quietly keep an eye on customer behavior from elevated structures known as ______.", 
+      answer: "galleries" 
+    }
+  ]
+},
         {
           id: "q11_13",
           instruction: "Questions 11-13: Choose the correct letter, A, B, C or D.",
@@ -63,22 +83,27 @@ const IELTS_DATA_READING = {
           items: [
             {
               id: 11,
-              text: ") Why did Clarence Saunders want to propel the innovation of grocery stores at his age?",
+              text: " Why did Clarence Saunders want to propel the innovation of grocery stores at his age?",
               options: ["A. Because he was an enthusiastic and creative man.", "B. Because his boss wanted to reform the grocery industry.", "C. Because he wanted to develop its efficiency and make great profit.", "D. Because he worried about competition."],
               answer: "C"
             },
             {
               id: 12,
-              text: ") What happened to Clarence Saunders' first store of Piggly Wiggly?",
+              text: " What happened to Clarence Saunders' first store of Piggly Wiggly?",
               options: ["A. Customers complained.", "B. It enjoyed a great business.", "C. It expanded to more than a thousand stores.", "D. Saunders was required to patent it."],
               answer: "B"
             },
-            {
-              id: 13,
-              text: ") What was left to Clarence Saunders after his death in 1953?",
-              options: ["A. A fully automatic store system.", "B. The name Piggly Wiggly was very popular.", "C. His name was connected with Piggly Wiggly.", "D. His name was painted with the store name."],
-              answer: "C"
-            }
+{
+  "id": 13,
+  "text": " What does the final paragraph indicate about Clarence Saunders?",
+  "options": [
+    "A. He successfully launched an automated store system before he died.",
+    "B. He was actively planning a new business venture late in his life.",
+    "C. He managed to open a shop two blocks away from his original store.",
+    "D. He chose to abandon the retail industry completely after his bankruptcy."
+  ],
+  "answer": "B"
+}
           ]
         }
       ]
@@ -107,12 +132,49 @@ const IELTS_DATA_READING = {
           instruction: "Questions 14-18: Choose the correct letter A, B, C or D.",
           type: "mcq",
           items: [
-            { id: 14, text: ") According to the first paragraph, mapmakers in the 21st century...", options: ["A. combine techniques to chart unknown territory.", "B. still rely on being able to see what they map.", "C. are now able to visit the darkest jungle.", "D. need input from experts in other fields."], answer: "A" },
-            { id: 15, text: ") The Library of Congress offers an opportunity to...", options: ["A. borrow from their collection.", "B. learn how to restore maps.", "C. enjoy the atmosphere of the reading room.", "D. create computer maps."], answer: "D" },
-            { id: 16, text: ") Ptolemy alerted his contemporaries to the importance of...", options: ["A. measuring the circumference.", "B. organising maps.", "C. working out distance.", "D. accuracy and precision."], answer: "B" },
-            { id: 17, text: ") The invention of the printing press...", options: ["A. revitalised interest.", "B. enabled maps to be cheaper.", "C. changed the approach to mapmaking.", "D. ensured Ptolemy's work continued."], answer: "C" },
-            { id: 18, text: ") The writer concludes by stating that...", options: ["A. mapmaking is too specialised.", "B. conditions are harsh.", "C. aims remain unchanged.", "D. possibilities are infinite."], answer: "C" }
-          ]
+            { id: 14, text: " According to the first paragraph, mapmakers in the 21st century...", options: ["A. combine techniques to chart unknown territory.", "B. still rely on being able to see what they map.", "C. are now able to visit the darkest jungle.", "D. need input from experts in other fields."], answer: "A" },
+{
+  id: 15,
+  text: "The Library of Congress enables visitors to...",
+  options: [
+    "A. borrow maps from its collection.",
+    "B. learn techniques for restoring old maps.",
+    "C. observe both ancient and modern methods of studying maps.",
+    "D. purchase computer-generated maps."
+  ],
+  answer: "C"
+},
+           {
+  id: 16,
+  text: "Ptolemy alerted his contemporaries to the importance of...",
+  options: [
+    "A. measuring the Earth's circumference.",
+    "B. organising maps systematically and creating them to scale.",
+    "C. calculating exact real-world distances.",
+    "D. achieving complete mathematical precision."
+  ],
+  answer: "B"
+} , {
+  id: 17,
+  text: "The invention of the printing press...",
+  options: [
+    "A. renewed interest in scientific knowledge.",
+    "B. reduced the cost of producing maps.",
+    "C. changed the way maps were produced and used.",
+    "D. ensured that Ptolemy's ideas survived."
+  ],
+  answer: "C"
+},{
+  id: 18,
+  text: "According to the final paragraph, the Cassini family's achievement...",
+  options: [
+    "A. made France the first country to be completely mapped scientifically.",
+    "B. solved all the problems associated with cartography.",
+    "C. was considered more artistic than previous maps.",
+    "D. encouraged sailors to adopt the Mercator projection."
+  ],
+  answer: "A"
+}]
         },
         {
           id: "q19_21",
@@ -121,9 +183,9 @@ const IELTS_DATA_READING = {
           legend: ["A. Mercator", "B. Ptolemy", "C. Cassini family", "D. Eratosthenes"],
           options: ["A", "B", "C", "D"],
           items: [
-            { id: 19, text: ") Came very close to accurately measuring the distance round the Earth.", answer: "D" },
-            { id: 20, text: ") Produced maps showing man-made landmarks.", answer: "C" },
-            { id: 21, text: ") Laid the foundation for our modern time zones.", answer: "B" }
+            { id: 19, text: " Came very close to accurately measuring the distance round the Earth.", answer: "D" },
+            { id: 20, text: " Produced maps showing man-made landmarks.", answer: "C" },
+            { id: 21, text: " Laid the foundation for our modern time zones.", answer: "B" }
           ]
         },
         {
@@ -135,8 +197,11 @@ const IELTS_DATA_READING = {
             { id: 23, text: ") Maps were the responsibility of ______ rather than scientists.", answer: "monks" },
             { id: 24, text: ") The writings of ______ had been kept.", answer: "Ptolemy" },
             { id: 25, text: ") These days, ______ are vital to the creation of maps.", answer: "satellites" },
-            { id: 26, text: ") Cheaper versions have been developed for use in ______.", answer: "cars" }
-          ]
+         { 
+  id: 26, 
+  text: ") In the Library of Congress reading room, scholars wear ______ to handle fragile maps.", 
+  answer: "cotton gloves" 
+}]
         }
       ]
     },
@@ -169,16 +234,15 @@ const IELTS_DATA_READING = {
             { id: 27, text: ") Why is faithful science communication important?", options: ["A. Science plays significant role.", "B. Science is fraught with challenges.", "C. Complexity leads to confusion.", "D. Inventions are important."], answer: "A" },
             { id: 28, text: ") What is the reason for challenges in science reporting?", options: ["A. Phenomena are too complex.", "B. Scientists only partly understand evolution.", "C. Scientists don't comprehend meanings.", "D. Scientists partly understand implications."], answer: "D" },
             { id: 29, text: ") The term 'theory of relativity' is used to demonstrate...", options: ["A. invariant physical phenomenon.", "B. common people misleading by word choice.", "C. designed to be misleading.", "D. everything is relative."], answer: "B" },
-            { id: 30, text: ") Which is a good example of appropriate word choice?", options: ["A. Uncertainty principle", "B. Global warming", "C. Ozone layer", "D. Freon"], answer: "C" },
-            { id: 31, text: ") Surprising finding of Harvard debates?", options: ["A. Equal abilities.", "B. Proof applied was no big difference.", "C. Data shows no substantial figures.", "D. Social factors connection."], answer: "C" }
-          ]
-        },
+           { id: 30,text: "According to the writer, which term would have been a better choice?",options: [ "A. Uncertainty principle", "B. Global warming", "C. Global climate change", "D. Theory of relativity" ], answer: "C"},
+{ id: 31, text: ") Surprising finding of Harvard debates?", options: ["A. Equal abilities.", "B. Proof applied was no big difference.", "C. Data shows no substantial figures.", "D. Social factors connection."], answer: "C" }
+          ]},
         {
           id: "q32_35",
           instruction: "Questions 32-35: True, False, or Not Given.",
           type: "mcq",
           items: [
-            { id: 32, text: ") 'Global warming' scientifically refers to greater fluctuations in temperature and rainfall rather than universal rise.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "TRUE" },
+            { id: 32, text: ") 'Global warming' scientifically refers to greater fluctuations in temperature and rainfall rather than universal rise.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "NOT GIVEN" },
             { id: 33, text: ") More media coverage of 'global warming' would help public to recognize the phenomenon.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "NOT GIVEN" },
             { id: 34, text: ") Harvard debates should focus more on female scientist and male scientists.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "NOT GIVEN" },
             { id: 35, text: ") Public understanding of indirect scientific evidence would lead to confusion.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "FALSE" }
@@ -193,7 +257,7 @@ const IELTS_DATA_READING = {
             { id: 37, text: ") Common people do not understand meaning via the ______ scientists employed.", answer: "colloquial terminology" },
             { id: 38, text: ") Measurements any ______ makes cannot be confined...", answer: "observer" },
             { id: 39, text: ") Describe in a constant ______.", answer: "invariant description" },
-            { id: 40, text: ") A good example can be the theory of ______.", answer: "general relativity" }
+            { id: 40, text: ") A good example can be the theory of ______.", answer: "relativity" }
           ]
         }
       ]
@@ -251,8 +315,10 @@ function getBandScore(rawScore) {
   if (rawScore >= 10) return 4.0;
   if (rawScore >= 8) return 3.5;
   if (rawScore >= 6) return 3.0;
-  if (rawScore >= 4) return 2.5;
-  return 2.0; // 0-3 correct → reported as Band 0-2.0
+if (rawScore >= 4) return 2.5;
+if (rawScore >= 2) return 2.0;
+if (rawScore >= 1) return 1.0;
+return 0.0; 
 }
 
 // ── Total question count derived from the actual data, never hardcoded ──
