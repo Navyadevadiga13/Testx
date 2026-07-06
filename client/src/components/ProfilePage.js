@@ -592,7 +592,7 @@ const getTOEFLNote = (score) => {
           </>
         );
       }
-<<<<<<< HEAD
+
       if (activeTab === "Speaking") return null;
       const bd = tabTest.result?.breakdown;
       if (!bd || Object.keys(bd).length === 0) {
@@ -608,10 +608,10 @@ const getTOEFLNote = (score) => {
           <AnswerBreakdown breakdown={bd} />
         </>
       );
-=======
+
       // Reading / Listening / Speaking: no answer breakdown anymore
       return null;
->>>>>>> 83142c6fbd0822e5746ee4952f84196ef5193db1
+
     }
 
     // ── GRE ──
@@ -628,7 +628,7 @@ const getTOEFLNote = (score) => {
         );
       }
 
-<<<<<<< HEAD
+
       // Verbal / Quantitative → show answer breakdown
       const bd = tabTest.result?.breakdown;
       if (!bd || Object.keys(bd).length === 0) {
@@ -644,10 +644,10 @@ const getTOEFLNote = (score) => {
           <AnswerBreakdown breakdown={bd} />
         </>
       );
-=======
+
       // Verbal / Quantitative: no answer breakdown anymore
       return null;
->>>>>>> 83142c6fbd0822e5746ee4952f84196ef5193db1
+
     }
 
     return null;
