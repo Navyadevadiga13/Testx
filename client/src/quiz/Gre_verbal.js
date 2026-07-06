@@ -149,7 +149,6 @@ const verbalQuestions = [
   options:["dull","persuasive","confusing","irrelevant"],
   answer:"persuasive"
 },
-
   {
     id:21,
     question:"The results of the study were frustratingly ______.",

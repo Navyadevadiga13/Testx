@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { useNavigate } from "react-router-dom";
 import getApiBaseUrl from "../utils/api";
 
@@ -94,6 +95,58 @@ correct: 2 },
   }
 ];
 
+// --- TIMER CONFIG ---
+const TEST_DURATION_SECONDS = 40 * 60; // 40 minutes
+
+function formatTime(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+// ── Timer badge, rendered via portal so no ancestor CSS (transform,
+// overflow:hidden, z-index stacking contexts, etc.) can hide or clip it ──────
+function TimerBadge({ timeLeft, isMobile }) {
+  const isTimeLow = timeLeft <= 5 * 60; // last 5 minutes
+  const isTimeCritical = timeLeft <= 60; // last 1 minute
+
+  const badge = (
+    <div style={{
+      position: "fixed",
+      top: isMobile ? "80px" : "110px",
+      right: isMobile ? "28px" : "65px",
+      zIndex: 2147483647, // max z-index, guarantees it's on top of everything
+      background: isTimeCritical ? "#fdeceb" : isTimeLow ? "#fff6e5" : "#eaf7f0",
+      border: `1.5px solid ${isTimeCritical ? "#e05a4e" : isTimeLow ? "#e0a63c" : "#2e7d52"}`,
+      borderRadius: "30px",
+      padding: isMobile ? "6px 12px" : "8px 18px",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+      pointerEvents: "none",
+    }}>
+      <span style={{ fontSize: isMobile ? "0.78rem" : "0.85rem", fontWeight: "600", color: "#555" }}>
+        Time Left
+      </span>
+      <span style={{
+        fontSize: isMobile ? "0.95rem" : "1.05rem",
+        fontWeight: "800",
+        fontVariantNumeric: "tabular-nums",
+        color: isTimeCritical ? "#c0392b" : isTimeLow ? "#a06a10" : "#1a5c3a",
+      }}>
+        {formatTime(timeLeft)}
+      </span>
+    </div>
+  );
+
+  // Render directly into document.body so it can never be clipped or
+  // covered because of a parent's transform/overflow/z-index.
+  return typeof document !== "undefined"
+    ? ReactDOM.createPortal(badge, document.body)
+    : badge;
+}
+
 // ── Responsive hook ──────────────────────────────────────────────────────────
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
@@ -114,6 +167,8 @@ function ToeflReading() {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [mcAnswers, setMcAnswers] = useState({});
   const [showPassage, setShowPassage] = useState(true); // mobile tab toggle
+  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS);
+  const hasAutoSubmittedRef = useRef(false);
 
   const currentModule = readingModules.find((m) => m.id === selectedModule);
   const currentSection = currentModule.sections[currentSectionIndex];
@@ -203,6 +258,36 @@ function ToeflReading() {
     }
   };
 
+  // Keep a ref to the latest calculateTotalScore so the timer's interval
+  // (which is only created once) always calls the freshest version —
+  // otherwise it would close over stale mcAnswers from the first render.
+  const calculateTotalScoreRef = useRef(calculateTotalScore);
+  useEffect(() => {
+    calculateTotalScoreRef.current = calculateTotalScore;
+  });
+
+  // ── 40-minute countdown timer ──────────────────────────────────────────────
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalId);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Auto-submit once the timer hits zero
+  useEffect(() => {
+    if (timeLeft === 0 && !hasAutoSubmittedRef.current) {
+      hasAutoSubmittedRef.current = true;
+      calculateTotalScoreRef.current();
+    }
+  }, [timeLeft]);
+
   // ── Shared styles ──────────────────────────────────────────────────────────
   const cardStyle = {
     background: "#ffffff",
@@ -224,8 +309,11 @@ function ToeflReading() {
       color: "#111",
     }}>
 
+      {/* ── TIMER BADGE (portal, always on top, always visible) ── */}
+      <TimerBadge timeLeft={timeLeft} isMobile={isMobile} />
+
       {/* ── BREADCRUMB ── */}
-      <div style={{ fontSize: isMobile ? "0.9rem" : "1.1rem", color: "#555", marginBottom: "12px" }}>
+      <div style={{ fontSize: isMobile ? "1.1rem" : "1.4rem", color: "#555", marginBottom: "12px" }}>
         TOEFL Suite / <span style={{ color: "#2e7d52", fontWeight: "600" }}>Reading</span>
       </div>
 
@@ -247,6 +335,7 @@ function ToeflReading() {
           <ul style={{ margin: 0, paddingLeft: "18px", color: "#444", fontSize: isMobile ? "0.8rem" : "0.85rem", lineHeight: "1.7" }}>
             <li>Read each passage carefully and answer all questions.</li>
             <li>{isMobile ? "Use the tabs below to switch between passage and questions." : "Use the Previous / Next buttons to move between passages."}</li>
+            <li>You have 40 minutes to complete the test. It will submit automatically when time runs out.</li>
           </ul>
         </div>
         <div style={{

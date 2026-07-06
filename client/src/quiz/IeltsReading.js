@@ -6,7 +6,8 @@ import {
   FiArrowLeft,
   FiArrowRight,
   FiSave,
-  FiMaximize
+  FiMaximize,
+  FiClock
 } from "react-icons/fi";
 import getApiBaseUrl from "../utils/api";
 
@@ -327,6 +328,17 @@ const TOTAL_QUESTIONS = IELTS_DATA_READING.passages.reduce(
   0
 );
 
+// ── Timer config: 60 minutes ──
+const TEST_DURATION_SECONDS = 60 * 60;
+
+// ── Format seconds as mm:ss ──
+function formatTime(totalSeconds) {
+  const safeSeconds = Math.max(0, totalSeconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 export default function IeltsReading() {
   const navigate = useNavigate();
   const [activePassage, setActivePassage] = useState(0);
@@ -339,6 +351,10 @@ export default function IeltsReading() {
   // active question id for scroll-to focus
   const [focusedQId, setFocusedQId] = useState(null);
   const questionRefs = useRef({});
+
+  // ── TIMER STATE ──
+  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS);
+  const autoSubmittedRef = useRef(false);
 
   const API_URL = getApiBaseUrl();
 
@@ -438,6 +454,32 @@ export default function IeltsReading() {
     saveTestResult(newScore, totalQuestions, breakdown, band, analysis);
   };
 
+  // Keep a stable ref to the latest calculateScore so the timer
+  // interval can call it without needing to be re-created every render.
+  const calculateScoreRef = useRef(calculateScore);
+  useEffect(() => {
+    calculateScoreRef.current = calculateScore;
+  });
+
+  // ── COUNTDOWN TIMER: ticks every second, auto-submits at 0 ──
+  useEffect(() => {
+    if (showResult) return; // stop ticking once the test is submitted
+
+    if (timeLeft <= 0) {
+      if (!autoSubmittedRef.current) {
+        autoSubmittedRef.current = true;
+        calculateScoreRef.current();
+      }
+      return;
+    }
+
+    const tick = setTimeout(() => {
+      setTimeLeft(t => t - 1);
+    }, 1000);
+
+    return () => clearTimeout(tick);
+  }, [timeLeft, showResult]);
+
   // Check if a question is answered
   const isAnswered = (id) => answers[id] !== undefined && answers[id] !== "";
 
@@ -457,6 +499,9 @@ export default function IeltsReading() {
     }
   };
 
+  const isTimeLow = timeLeft <= 5 * 60; // last 5 minutes
+  const isTimeCritical = timeLeft <= 60; // last 1 minute
+
   return (
     <div className="ielts-container">
   <style jsx>{`
@@ -469,7 +514,50 @@ export default function IeltsReading() {
   overflow: hidden;
   background: #ffffff;
   padding: 10px;
+  display: flex;
+  flex-direction: column;
 }
+
+    .page-header {
+      flex-shrink: 0;
+      margin-bottom: 10px;
+    }
+
+    /* TIMER */
+    .timer-badge {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .timer-badge.low {
+      background: #fef3c7;
+      border-color: #fcd34d;
+      color: #b45309;
+    }
+
+    .timer-badge.critical {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #dc2626;
+      animation: pulse-timer 1s infinite;
+    }
+
+    @keyframes pulse-timer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
 
     /* INSTRUCTIONS BANNER */
     .instructions-banner {
@@ -536,7 +624,8 @@ export default function IeltsReading() {
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 
-  height: calc(100vh - 20px);
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -1086,6 +1175,11 @@ export default function IeltsReading() {
         height: 26px;
         font-size: 0.65rem;
       }
+
+      .timer-badge {
+        font-size: 0.85rem;
+        padding: 5px 10px;
+      }
     }
   `}</style>
       {/* RESULT OVERLAY */}
@@ -1100,7 +1194,7 @@ export default function IeltsReading() {
               Band {bandScore.toFixed(1)}
             </div>
             <p style={{ color: "#888", marginTop: "0.5rem", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
-              Your performance has been saved
+              {timeLeft <= 0 ? "Time's up! " : ""}Your performance has been saved
             </p>
         <button
   className="btn-primary"
@@ -1114,12 +1208,20 @@ export default function IeltsReading() {
       )}
 
       {/* HEADER */}
-      <div className="page-header">
+      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
         <h1 style={{ fontSize: "1.3rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span style={{ color: "#666", cursor: "pointer" }} onClick={() => navigate("/tests/ielts")}>IELTS Mock Test</span>
           <span style={{ color: "#444" }}>/</span>
           <span style={{ color: "#19fd91" }}>Reading</span>
         </h1>
+
+        <div
+          className={`timer-badge${isTimeCritical ? " critical" : isTimeLow ? " low" : ""}`}
+          title="Time remaining"
+        >
+          <FiClock />
+          {formatTime(timeLeft)}
+        </div>
       </div>
 
       {/* SPLIT LAYOUT */}
