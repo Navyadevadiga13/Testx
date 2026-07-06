@@ -256,5 +256,4 @@ function Gre_analytical() {
     </div>
   );
 }
-
 export default Gre_analytical;

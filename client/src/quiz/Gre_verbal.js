@@ -115,12 +115,12 @@ const verbalQuestions = [
     answer:"confirmed"
   },
 
-  {
-    id:16,
-    question:"The author's tone throughout the essay is best described as ______.",
-    options:["satirical","solemn","neutral","casual"],
-    answer:"satirical"
-  },
+{
+  id:16,
+  question:"Although the candidate lacked experience, her exceptional performance during the interview made the panel ______ of her abilities.",
+  options:["skeptical","convinced","uncertain","dismissive"],
+  answer:"convinced"
+},
 
   {
     id:17,
@@ -130,11 +130,11 @@ const verbalQuestions = [
   },
 
   {
-    id:18,
-    question:"The hypothesis assumes that natural resources are ______.",
-    options:["abundant","limited","unpredictable","renewable"],
-    answer:"limited"
-  },
+  id:18,
+  question:"Many economists argue that natural resources are ______ and should therefore be managed carefully.",
+  options:["abundant","limited","unpredictable","renewable"],
+  answer:"limited"
+},
 
   {
     id:19,
@@ -143,12 +143,12 @@ const verbalQuestions = [
     answer:"robust"
   },
 
-  {
-    id:20,
-    question:"Her speech was both inspiring and highly ______.",
-    options:["dull","motivating","confusing","irrelevant"],
-    answer:"motivating"
-  },
+{
+  id:20,
+  question:"Her speech was both inspiring and highly persuasive.",
+  options:["dull","persuasive","confusing","irrelevant"],
+  answer:"persuasive"
+},
 
   {
     id:21,
@@ -192,12 +192,12 @@ const verbalQuestions = [
     answer:"consistent with"
   },
 
-  {
-    id:27,
-    question:"The author's attitude toward the theory can best be described as ______.",
-    options:["supportive","skeptical","indifferent","enthusiastic"],
-    answer:"skeptical"
-  }
+{
+  id:27,
+  question:"Although the explanation appeared convincing at first, closer examination revealed it was ______.",
+  options:["sound","flawed","coherent","persuasive"],
+  answer:"flawed"
+}
 
 ];
 
