@@ -31,31 +31,51 @@ const IELTS_DATA_READING = {
 
 (G) Until the time of his death in October 1953, Saunders was developing plans for another automatic store system called the Foodelectric. But the store, which was to be located two blocks from the first Piggly Wiggly store, never opened. But his name was well-remembered along with the name Piggly Wiggly.`,
       questions: [
-        {
+{
           id: "q1_5",
-          instruction: "Questions 1-5: The reading Passage has seven paragraphs A-G. Which paragraph contains the following information?",
+          instruction: "Questions 1-5: The reading Passage has seven paragraphs, A-G. Which paragraph contains the following information?\nNB You may use any letter more than once.",
           type: "matching_paragraph",
           options: ["A", "B", "C", "D", "E", "F", "G"],
           items: [
-            { id: 1, text: ") How Clarence Saunders' new idea had been carried out.", answer: "C" },
-            { id: 2, text: ") Introducing the modes and patterns of groceries before his age.", answer: "A" },
-            { id: 3, text: ") Clarence Saunders declared bankruptcy a few years later.", answer: "F" },
-            { id: 4, text: ") Descriptions of Clarence Saunders' new conception.", answer: "C" },
-            { id: 5, text: ") The booming development of his business.", answer: "E" }
+            { id: 1, text: "How Clarence Saunders' new idea had been carried out.", answer: "D" },
+            { id: 2, text: "Introducing the modes and patterns of groceries before his age.", answer: "A" },
+            { id: 3, text: "Clarence Saunders declared bankruptcy a few years later.", answer: "F" },
+            { id: 4, text: "Descriptions of Clarence Saunders' new conception.", answer: "C" },
+            { id: 5, text: "The booming development of his business.", answer: "E" }
           ]
         },
-        {
-          id: "q6_10",
-          instruction: "Questions 6-10: Answer the questions below. Write ONLY ONE WORD OR A NUMBER.",
-          type: "fill_blank",
-          items: [
-            { id: 6, text: ") When Clarence Saunders was an adolescent, he took a job as a ______ in a grocery store.", answer: "clerk" },
-            { id: 7, text: ") In the new innovation of grocery store, most of the clerks' work before was done by ______.", answer: "shoppers" },
-            { id: 8, text: ") In Saunders' new grocery store, the section where customers finish the payment was called ______.", answer: "lobby" },
-            { id: 9, text: ") Another area in his store which behind the public area was called the ______ where only internal staff could access.", answer: "stockroom" },
-            { id: 10, text: ") At ______ where customers were under surveillance.", answer: "galleries" }
-          ]
-        },
+{
+  id: "q6_10",
+  instruction: "Questions 6-10: Complete the sentences below. Choose ONLY ONE WORD from the passage for each answer.",
+  type: "fill_blank",
+  items: [
+    { 
+      id: 6, 
+      text: "When Clarence Saunders was an adolescent, he took a job as a ______ in a grocery store.", 
+      answer: "clerk" 
+    },
+    { 
+      id: 7, 
+      text: "Saunders' revolutionary retail concept fundamentally allowed shoppers to ______ themselves.", 
+      answer: "serve" 
+    },
+    { 
+      id: 8, 
+      text: "In the new grocery store format, the front area containing the checkouts was called the ______.", 
+      answer: "lobby" 
+    },
+    { 
+      id: 9, 
+      text: "Perishable items were prevented from spoiling inside large refrigerators located in the store's ______.", 
+      answer: "stockroom" 
+    },
+    { 
+      id: 10, 
+      text: "Supervisors could quietly keep an eye on customer behavior from elevated structures known as ______.", 
+      answer: "galleries" 
+    }
+  ]
+},
         {
           id: "q11_13",
           instruction: "Questions 11-13: Choose the correct letter, A, B, C or D.",
@@ -63,22 +83,27 @@ const IELTS_DATA_READING = {
           items: [
             {
               id: 11,
-              text: ") Why did Clarence Saunders want to propel the innovation of grocery stores at his age?",
+              text: " Why did Clarence Saunders want to propel the innovation of grocery stores at his age?",
               options: ["A. Because he was an enthusiastic and creative man.", "B. Because his boss wanted to reform the grocery industry.", "C. Because he wanted to develop its efficiency and make great profit.", "D. Because he worried about competition."],
               answer: "C"
             },
             {
               id: 12,
-              text: ") What happened to Clarence Saunders' first store of Piggly Wiggly?",
+              text: " What happened to Clarence Saunders' first store of Piggly Wiggly?",
               options: ["A. Customers complained.", "B. It enjoyed a great business.", "C. It expanded to more than a thousand stores.", "D. Saunders was required to patent it."],
               answer: "B"
             },
-            {
-              id: 13,
-              text: ") What was left to Clarence Saunders after his death in 1953?",
-              options: ["A. A fully automatic store system.", "B. The name Piggly Wiggly was very popular.", "C. His name was connected with Piggly Wiggly.", "D. His name was painted with the store name."],
-              answer: "C"
-            }
+{
+  "id": 13,
+  "text": " What does the final paragraph indicate about Clarence Saunders?",
+  "options": [
+    "A. He successfully launched an automated store system before he died.",
+    "B. He was actively planning a new business venture late in his life.",
+    "C. He managed to open a shop two blocks away from his original store.",
+    "D. He chose to abandon the retail industry completely after his bankruptcy."
+  ],
+  "answer": "B"
+}
           ]
         }
       ]
@@ -107,12 +132,49 @@ const IELTS_DATA_READING = {
           instruction: "Questions 14-18: Choose the correct letter A, B, C or D.",
           type: "mcq",
           items: [
-            { id: 14, text: ") According to the first paragraph, mapmakers in the 21st century...", options: ["A. combine techniques to chart unknown territory.", "B. still rely on being able to see what they map.", "C. are now able to visit the darkest jungle.", "D. need input from experts in other fields."], answer: "A" },
-            { id: 15, text: ") The Library of Congress offers an opportunity to...", options: ["A. borrow from their collection.", "B. learn how to restore maps.", "C. enjoy the atmosphere of the reading room.", "D. create computer maps."], answer: "D" },
-            { id: 16, text: ") Ptolemy alerted his contemporaries to the importance of...", options: ["A. measuring the circumference.", "B. organising maps.", "C. working out distance.", "D. accuracy and precision."], answer: "B" },
-            { id: 17, text: ") The invention of the printing press...", options: ["A. revitalised interest.", "B. enabled maps to be cheaper.", "C. changed the approach to mapmaking.", "D. ensured Ptolemy's work continued."], answer: "C" },
-            { id: 18, text: ") The writer concludes by stating that...", options: ["A. mapmaking is too specialised.", "B. conditions are harsh.", "C. aims remain unchanged.", "D. possibilities are infinite."], answer: "C" }
-          ]
+            { id: 14, text: " According to the first paragraph, mapmakers in the 21st century...", options: ["A. combine techniques to chart unknown territory.", "B. still rely on being able to see what they map.", "C. are now able to visit the darkest jungle.", "D. need input from experts in other fields."], answer: "A" },
+{
+  id: 15,
+  text: "The Library of Congress enables visitors to...",
+  options: [
+    "A. borrow maps from its collection.",
+    "B. learn techniques for restoring old maps.",
+    "C. observe both ancient and modern methods of studying maps.",
+    "D. purchase computer-generated maps."
+  ],
+  answer: "C"
+},
+           {
+  id: 16,
+  text: "Ptolemy alerted his contemporaries to the importance of...",
+  options: [
+    "A. measuring the Earth's circumference.",
+    "B. organising maps systematically and creating them to scale.",
+    "C. calculating exact real-world distances.",
+    "D. achieving complete mathematical precision."
+  ],
+  answer: "B"
+} , {
+  id: 17,
+  text: "The invention of the printing press...",
+  options: [
+    "A. renewed interest in scientific knowledge.",
+    "B. reduced the cost of producing maps.",
+    "C. changed the way maps were produced and used.",
+    "D. ensured that Ptolemy's ideas survived."
+  ],
+  answer: "C"
+},{
+  id: 18,
+  text: "According to the final paragraph, the Cassini family's achievement...",
+  options: [
+    "A. made France the first country to be completely mapped scientifically.",
+    "B. solved all the problems associated with cartography.",
+    "C. was considered more artistic than previous maps.",
+    "D. encouraged sailors to adopt the Mercator projection."
+  ],
+  answer: "A"
+}]
         },
         {
           id: "q19_21",
@@ -121,9 +183,9 @@ const IELTS_DATA_READING = {
           legend: ["A. Mercator", "B. Ptolemy", "C. Cassini family", "D. Eratosthenes"],
           options: ["A", "B", "C", "D"],
           items: [
-            { id: 19, text: ") Came very close to accurately measuring the distance round the Earth.", answer: "D" },
-            { id: 20, text: ") Produced maps showing man-made landmarks.", answer: "C" },
-            { id: 21, text: ") Laid the foundation for our modern time zones.", answer: "B" }
+            { id: 19, text: " Came very close to accurately measuring the distance round the Earth.", answer: "D" },
+            { id: 20, text: " Produced maps showing man-made landmarks.", answer: "C" },
+            { id: 21, text: " Laid the foundation for our modern time zones.", answer: "B" }
           ]
         },
         {
@@ -135,8 +197,11 @@ const IELTS_DATA_READING = {
             { id: 23, text: ") Maps were the responsibility of ______ rather than scientists.", answer: "monks" },
             { id: 24, text: ") The writings of ______ had been kept.", answer: "Ptolemy" },
             { id: 25, text: ") These days, ______ are vital to the creation of maps.", answer: "satellites" },
-            { id: 26, text: ") Cheaper versions have been developed for use in ______.", answer: "cars" }
-          ]
+         { 
+  id: 26, 
+  text: ") In the Library of Congress reading room, scholars wear ______ to handle fragile maps.", 
+  answer: "cotton gloves" 
+}]
         }
       ]
     },
@@ -169,16 +234,15 @@ const IELTS_DATA_READING = {
             { id: 27, text: ") Why is faithful science communication important?", options: ["A. Science plays significant role.", "B. Science is fraught with challenges.", "C. Complexity leads to confusion.", "D. Inventions are important."], answer: "A" },
             { id: 28, text: ") What is the reason for challenges in science reporting?", options: ["A. Phenomena are too complex.", "B. Scientists only partly understand evolution.", "C. Scientists don't comprehend meanings.", "D. Scientists partly understand implications."], answer: "D" },
             { id: 29, text: ") The term 'theory of relativity' is used to demonstrate...", options: ["A. invariant physical phenomenon.", "B. common people misleading by word choice.", "C. designed to be misleading.", "D. everything is relative."], answer: "B" },
-            { id: 30, text: ") Which is a good example of appropriate word choice?", options: ["A. Uncertainty principle", "B. Global warming", "C. Ozone layer", "D. Freon"], answer: "C" },
-            { id: 31, text: ") Surprising finding of Harvard debates?", options: ["A. Equal abilities.", "B. Proof applied was no big difference.", "C. Data shows no substantial figures.", "D. Social factors connection."], answer: "C" }
-          ]
-        },
+           { id: 30,text: "According to the writer, which term would have been a better choice?",options: [ "A. Uncertainty principle", "B. Global warming", "C. Global climate change", "D. Theory of relativity" ], answer: "C"},
+{ id: 31, text: ") Surprising finding of Harvard debates?", options: ["A. Equal abilities.", "B. Proof applied was no big difference.", "C. Data shows no substantial figures.", "D. Social factors connection."], answer: "C" }
+          ]},
         {
           id: "q32_35",
           instruction: "Questions 32-35: True, False, or Not Given.",
           type: "mcq",
           items: [
-            { id: 32, text: ") 'Global warming' scientifically refers to greater fluctuations in temperature and rainfall rather than universal rise.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "TRUE" },
+            { id: 32, text: ") 'Global warming' scientifically refers to greater fluctuations in temperature and rainfall rather than universal rise.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "NOT GIVEN" },
             { id: 33, text: ") More media coverage of 'global warming' would help public to recognize the phenomenon.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "NOT GIVEN" },
             { id: 34, text: ") Harvard debates should focus more on female scientist and male scientists.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "NOT GIVEN" },
             { id: 35, text: ") Public understanding of indirect scientific evidence would lead to confusion.", options: ["TRUE", "FALSE", "NOT GIVEN"], answer: "FALSE" }
@@ -193,7 +257,7 @@ const IELTS_DATA_READING = {
             { id: 37, text: ") Common people do not understand meaning via the ______ scientists employed.", answer: "colloquial terminology" },
             { id: 38, text: ") Measurements any ______ makes cannot be confined...", answer: "observer" },
             { id: 39, text: ") Describe in a constant ______.", answer: "invariant description" },
-            { id: 40, text: ") A good example can be the theory of ______.", answer: "general relativity" }
+            { id: 40, text: ") A good example can be the theory of ______.", answer: "relativity" }
           ]
         }
       ]
@@ -201,7 +265,7 @@ const IELTS_DATA_READING = {
   ]
 };
 
-// Flatten all items per passage for the nav panel
+// ── Flatten all items per passage for the nav panel ──
 function getFlatItems(passage) {
   const items = [];
   passage.questions.forEach(group => {
@@ -210,11 +274,58 @@ function getFlatItems(passage) {
   return items;
 }
 
-// Get passage question range label e.g. "1–13"
+// ── Get passage question range label e.g. "1–13" ──
 function getPassageRange(passage) {
   const allIds = passage.questions.flatMap(g => g.items.map(i => i.id));
   return `${Math.min(...allIds)}–${Math.max(...allIds)}`;
 }
+
+// ── SHARED ANSWER-CHECKING LOGIC ──
+// Used by BOTH calculateScore() and getResult() so scoring and the
+// on-screen ✅/❌ indicators can never disagree with each other.
+// Fixes the old bug where MCQ/matching answers were compared using
+// only their first character (charAt(0)) instead of the full string.
+function checkAnswer(userAnswerRaw, correctAnswerRaw) {
+  const userAns = (userAnswerRaw || "").trim().toLowerCase();
+  const correctAns = (correctAnswerRaw || "").trim().toLowerCase();
+
+  if (!userAns) return false;
+
+  // Support multiple acceptable answers separated by "/" e.g. "colour/color"
+  if (correctAns.includes("/")) {
+    const possibleAnswers = correctAns.split("/").map(a => a.trim());
+    return possibleAnswers.includes(userAns);
+  }
+
+  return userAns === correctAns;
+}
+
+// ── IELTS Academic Reading raw-score → band conversion ──
+function getBandScore(rawScore) {
+  if (rawScore >= 39) return 9.0;
+  if (rawScore >= 37) return 8.5;
+  if (rawScore >= 35) return 8.0;
+  if (rawScore >= 33) return 7.5;
+  if (rawScore >= 30) return 7.0;
+  if (rawScore >= 27) return 6.5;
+  if (rawScore >= 23) return 6.0;
+  if (rawScore >= 19) return 5.5;
+  if (rawScore >= 15) return 5.0;
+  if (rawScore >= 13) return 4.5;
+  if (rawScore >= 10) return 4.0;
+  if (rawScore >= 8) return 3.5;
+  if (rawScore >= 6) return 3.0;
+if (rawScore >= 4) return 2.5;
+if (rawScore >= 2) return 2.0;
+if (rawScore >= 1) return 1.0;
+return 0.0; 
+}
+
+// ── Total question count derived from the actual data, never hardcoded ──
+const TOTAL_QUESTIONS = IELTS_DATA_READING.passages.reduce(
+  (sum, p) => sum + p.questions.reduce((s, g) => s + g.items.length, 0),
+  0
+);
 
 export default function IeltsReading() {
   const navigate = useNavigate();
@@ -222,6 +333,8 @@ export default function IeltsReading() {
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
+  const [bandScore, setBandScore] = useState(0);
+  const [questionAnalysis, setQuestionAnalysis] = useState([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   // active question id for scroll-to focus
   const [focusedQId, setFocusedQId] = useState(null);
@@ -231,19 +344,21 @@ export default function IeltsReading() {
 
   const currentPassage = IELTS_DATA_READING.passages[activePassage];
   const flatItems = getFlatItems(currentPassage);
-useEffect(() => {
-  const header = document.querySelector(".header");
 
-  if (header) {
-    header.style.display = "none";
-  }
+  useEffect(() => {
+    const header = document.querySelector(".header");
 
-  return () => {
     if (header) {
-      header.style.display = "flex";
+      header.style.display = "none";
     }
-  };
-}, []);
+
+    return () => {
+      if (header) {
+        header.style.display = "flex";
+      }
+    };
+  }, []);
+
   // Set first question as focused when passage changes
   useEffect(() => {
     if (flatItems.length > 0) {
@@ -262,7 +377,7 @@ useEffect(() => {
     setAnswers(prev => ({ ...prev, [qId]: value }));
   };
 
-  const saveTestResult = async (finalScore, totalQuestions, fullBreakdown) => {
+  const saveTestResult = async (finalScore, totalQuestions, fullBreakdown, band, analysis) => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
@@ -272,10 +387,14 @@ useEffect(() => {
         body: JSON.stringify({
           testName: "IELTS Reading",
           result: {
-            score: finalScore,
+            correctAnswers: finalScore,
+            incorrectAnswers: totalQuestions - finalScore,
+            rawScore: finalScore,
+            bandScore: band,
             total: totalQuestions,
             percentage: Math.round((finalScore / totalQuestions) * 100),
-            breakdown: fullBreakdown
+            breakdown: fullBreakdown,
+            questionAnalysis: analysis
           }
         })
       });
@@ -290,54 +409,54 @@ useEffect(() => {
     let newScore = 0;
     let totalQuestions = 0;
     const breakdown = {};
+    const analysis = [];
+
     IELTS_DATA_READING.passages.forEach(p => {
       p.questions.forEach(group => {
         group.items.forEach(item => {
           totalQuestions++;
-          const userAns = (answers[item.id] || "").trim().toLowerCase();
-          const correctAns = (item.answer || "").trim().toLowerCase();
-          let isCorrect = false;
-          if (group.type === "fill_blank" || group.type === "matching_paragraph") {
-            if (correctAns.includes("/")) {
-              const possibleAnswers = correctAns.split("/");
-              if (possibleAnswers.some(ans => userAns === ans.trim())) isCorrect = true;
-            } else {
-              if (userAns === correctAns) isCorrect = true;
-            }
-          } else {
-            if (userAns.charAt(0) === correctAns.charAt(0)) isCorrect = true;
-          }
+          const isCorrect = checkAnswer(answers[item.id], item.answer);
           if (isCorrect) newScore++;
           breakdown[item.id] = { user: answers[item.id], correct: item.answer, isCorrect };
+          analysis.push({
+            questionNumber: item.id,
+            studentAnswer: answers[item.id] || "",
+            correctAnswer: item.answer,
+            isCorrect
+          });
         });
       });
     });
+
+    const band = getBandScore(newScore);
+
     setScore(newScore);
+    setBandScore(band);
+    setQuestionAnalysis(analysis);
     setShowResult(true);
     window.scrollTo(0, 0);
-    saveTestResult(newScore, totalQuestions, breakdown);
+    saveTestResult(newScore, totalQuestions, breakdown, band, analysis);
   };
 
   // Check if a question is answered
   const isAnswered = (id) => answers[id] !== undefined && answers[id] !== "";
 
-  // Get result for a question
-  const getResult = (item, groupType) => {
+  // Get result for a question — now uses the SAME logic as calculateScore
+  const getResult = (item) => {
     if (!showResult) return null;
-    const userAns = (answers[item.id] || "").trim().toLowerCase();
-    const correctAns = (item.answer || "").trim().toLowerCase();
-    if (groupType === "mcq") return userAns.charAt(0) === correctAns.charAt(0);
-    return userAns === correctAns;
+    return checkAnswer(answers[item.id], item.answer);
   };
-const toggleFullscreen = async () => {
-  if (!document.fullscreenElement) {
-    await document.documentElement.requestFullscreen();
-    setIsFullscreen(true);
-  } else {
-    await document.exitFullscreen();
-    setIsFullscreen(false);
-  }
-};
+
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      await document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
   return (
     <div className="ielts-container">
   <style jsx>{`
@@ -351,19 +470,6 @@ const toggleFullscreen = async () => {
   background: #ffffff;
   padding: 10px;
 }
-
-    /* HEADER */
-    // .page-header {
-    //   max-width: 1500px;
-    //   margin: 0 auto 1rem;
-    //   width: 100%;
-    //   display: flex;
-    //   justify-content: space-between;
-    //   align-items: center;
-    //   border-bottom: 1px solid #d1fae5;
-    //   padding-bottom: 0.75rem;
-    //   flex-shrink: 0;
-    // }
 
     /* INSTRUCTIONS BANNER */
     .instructions-banner {
@@ -430,8 +536,8 @@ const toggleFullscreen = async () => {
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 
-  height: calc(100vh - 20px); /* IMPORTANT */
-  overflow: hidden;           /* IMPORTANT */
+  height: calc(100vh - 20px);
+  overflow: hidden;
 }
 
     /* PASSAGE PANEL */
@@ -970,7 +1076,7 @@ const toggleFullscreen = async () => {
   .ielts-container {
     padding: 10px;
   }
-}
+
       .instructions-grid {
         grid-template-columns: 1fr;
       }
@@ -988,7 +1094,10 @@ const toggleFullscreen = async () => {
           <div className="result-modal">
             <h2 style={{ fontSize: "1.6rem", fontWeight: 700, marginBottom: "0.5rem" }}>Test Complete!</h2>
             <div style={{ fontSize: "3.5rem", fontWeight: 800, color: "#19fd91", lineHeight: 1.1 }}>
-              {score} <span style={{ fontSize: "1.4rem", color: "#888" }}>/ 40</span>
+              {score} <span style={{ fontSize: "1.4rem", color: "#888" }}>/ {TOTAL_QUESTIONS}</span>
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#16a34a", marginTop: "0.35rem" }}>
+              Band {bandScore.toFixed(1)}
             </div>
             <p style={{ color: "#888", marginTop: "0.5rem", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
               Your performance has been saved
@@ -1012,21 +1121,6 @@ const toggleFullscreen = async () => {
           <span style={{ color: "#19fd91" }}>Reading</span>
         </h1>
       </div>
-
-      {/* INSTRUCTIONS
-      <div className="instructions-banner">
-        <div className="instructions-title">Reading Test Instructions</div>
-        <div className="instructions-grid">
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <div className="instruction-item"><span className="bullet">•</span><span>40 questions across three passages. Answer all questions from the passage text only.</span></div>
-            <div className="instruction-item"><span className="bullet">•</span><span>Use the number panel at the bottom to jump to any question quickly.</span></div>
-          </div>
-          <div className="instructions-right">
-            <div className="warning-title">Important:</div>
-            <div>Answer all questions based only on the information given in the passages.</div>
-          </div>
-        </div>
-      </div> */}
 
       {/* SPLIT LAYOUT */}
       <div className="split-layout">
@@ -1108,7 +1202,7 @@ const toggleFullscreen = async () => {
 
                 {group.items.map(item => {
                   const isFocused = focusedQId === item.id;
-                  const result = getResult(item, group.type);
+                  const result = getResult(item);
                   return (
                     <div
                       key={item.id}
@@ -1203,7 +1297,7 @@ const toggleFullscreen = async () => {
                   const focused = focusedQId === item.id;
                   let cls = "q-nav-btn";
                   if (showResult) {
-                    const res = getResult(item, item.groupType);
+                    const res = getResult(item);
                     cls += res ? " correct-result" : " wrong-result";
                   } else if (focused) {
                     cls += " focused";

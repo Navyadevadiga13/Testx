@@ -8,7 +8,6 @@ import circleImg from "../assets/circle.png";
 import squiggleImg from "../assets/squiggle.png";
 
 const TEST_NAME = "Geometry Personality Test";
-
 const SHAPES = [
   {
     id: 1,
