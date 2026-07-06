@@ -518,6 +518,7 @@
 
 
 // src/components/ProfilePage.js
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import getApiBaseUrl from "../utils/api";
@@ -840,49 +841,105 @@ function ProfilePage({ onLogout }) {
   const testHistory = user.testHistory || [];
 
   // ─── TOEFL ───────────────────────────────────────────────────────
-  const toeflAll = testHistory.filter(t => t.testName?.toLowerCase().includes("toefl"));
+ // ─── TOEFL ───────────────────────────────────────────────────────
+const toeflAll = testHistory.filter(
+  (t) => t.testName?.toLowerCase().includes("toefl")
+);
 
-  const findToefl = (keyword) =>
-    toeflAll
-      .filter(t => t.testName?.toLowerCase().includes(keyword))
-      .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+const findToefl = (keyword) =>
+  toeflAll
+    .filter((t) => t.testName?.toLowerCase().includes(keyword))
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
 
-  const toeflReadingTest   = findToefl("reading");
-  const toeflListeningTest = findToefl("listening");
-  const toeflWritingTest   = findToefl("writing");
-  const toeflSpeakingTest  = findToefl("speaking");
+const toeflReadingTest = findToefl("reading");
+const toeflListeningTest = findToefl("listening");
+const toeflWritingTest = findToefl("writing");
+const toeflSpeakingTest = findToefl("speaking");
 
-  const getScore = (test) => (test ? Number(test.result?.toeflScore) || 0 : null);
+const getScore = (test) =>
+  test ? Number(test.result?.toeflScore) || 0 : 0;
 
-  const tReading   = toeflReadingTest   ? getScore(toeflReadingTest)   : null;
-  const tListening = toeflListeningTest ? getScore(toeflListeningTest) : null;
-  const tWriting   = toeflWritingTest   ? getScore(toeflWritingTest)   : null;
-  const tSpeaking  = toeflSpeakingTest  ? getScore(toeflSpeakingTest)  : null;
+const readingScore = getScore(toeflReadingTest);
+const listeningScore = getScore(toeflListeningTest);
+const writingScore = getScore(toeflWritingTest);
+const speakingScore = getScore(toeflSpeakingTest);
 
-  const toeflAttempted = [tReading, tListening, tWriting, tSpeaking].filter(s => s !== null && s > 0);
-  const toeflTotal = toeflAttempted.reduce((a, b) => a + b, 0);
-  const anyToefl = toeflAll.length > 0;
+// Official TOEFL iBT Total
+const toeflTotal =
+  readingScore +
+  listeningScore +
+  writingScore +
+  speakingScore;
 
-  const toeflTabToTest = {
-    Reading:   toeflReadingTest,
-    Listening: toeflListeningTest,
-    Writing:   toeflWritingTest,
-    Speaking:  toeflSpeakingTest,
-  };
+const anyToefl = toeflAll.length > 0;
 
-  const getTOEFLSuggestions = () => [
-    { label: "Reading",   score: tReading,   tips: ["Practice skimming and scanning passages under time pressure.", "Read academic and news articles daily.", "Work on identifying main ideas and author's purpose."] },
-    { label: "Listening", score: tListening, tips: ["Listen to TED Talks, lectures, and academic podcasts.", "Practice note-taking while listening.", "Focus on identifying key arguments and transitions."] },
-    { label: "Writing",   score: tWriting,   tips: ["Practice integrated and independent essay structures.", "Work on clear thesis statements and coherent paragraphs.", "Expand academic vocabulary and vary sentence structure."] },
-    { label: "Speaking",  score: tSpeaking,  tips: ["Record yourself and listen back for clarity.", "Practice speaking on academic topics spontaneously.", "Work on pacing, pronunciation, and linking ideas."] },
-  ].filter(s => s.score !== null && s.score > 0 && s.score < 20);
+const toeflTabToTest = {
+  Reading: toeflReadingTest,
+  Listening: toeflListeningTest,
+  Writing: toeflWritingTest,
+  Speaking: toeflSpeakingTest,
+};
+const getTOEFLSuggestions = () =>
+  [
+    {
+      label: "Reading",
+      score: readingScore,
+      tips: [
+        "Practice academic reading passages.",
+        "Improve skimming and scanning.",
+        "Learn vocabulary from context.",
+      ],
+    },
+    {
+      label: "Listening",
+      score: listeningScore,
+      tips: [
+        "Listen to university lectures.",
+        "Practice note-taking.",
+        "Identify the speaker's purpose and main ideas.",
+      ],
+    },
+    {
+      label: "Speaking",
+      score: speakingScore,
+      tips: [
+        "Record your responses.",
+        "Practice speaking within the time limit.",
+        "Improve pronunciation and fluency.",
+      ],
+    },
+    {
+      label: "Writing",
+      score: writingScore,
+      tips: [
+        "Organize essays clearly.",
+        "Support ideas with examples.",
+        "Improve grammar and vocabulary.",
+      ],
+    },
+  ].filter((section) => section.score < 23);
 
-  const getTOEFLNote = (total) => {
-    if (total >= 100) return "Excellent! A score of 100+ is competitive for top universities worldwide.";
-    if (total >= 80)  return "Good score! 80+ meets requirements for many graduate and undergraduate programs.";
-    if (total >= 60)  return "Decent foundation. Focused preparation can help you reach your target score.";
-    return "Keep practising — consistent effort leads to significant improvement.";
-  };
+const getTOEFLNote = (score) => {
+  if (score >= 110)
+    return "Outstanding! Competitive for admission to the world's top universities.";
+
+  if (score >= 100)
+    return "Excellent! Meets the requirements of most top universities.";
+
+  if (score >= 90)
+    return "Very Good! Suitable for many graduate and undergraduate programs.";
+
+  if (score >= 80)
+    return "Good. Meets the admission requirements of many universities.";
+
+  if (score >= 70)
+    return "Fair. Additional preparation is recommended.";
+
+  if (score >= 60)
+    return "Needs improvement. Focus on your weaker sections.";
+
+  return "Continue practising to improve your TOEFL score.";
+};
 
   const toeflSectionTips = {
     Reading:   ["Practice skimming and scanning passages under time pressure.", "Read academic and news articles daily.", "Work on identifying main ideas and author's purpose."],
@@ -1036,10 +1093,7 @@ function ProfilePage({ onLogout }) {
       if (!bd || Object.keys(bd).length === 0) {
         return (
           <>
-            <SectionDivider label="Your Answers vs Correct Answers" />
-            <div style={{ marginTop: "12px", padding: "16px", background: "#fff8e1", border: "1px solid #ffe082", borderRadius: "8px", fontSize: "0.83rem", color: "#7a5c00" }}>
-              ⚠️ Answer breakdown is available for tests taken after the latest update. Please retake this section to see your detailed results.
-            </div>
+           
           </>
         );
       }
@@ -1070,10 +1124,7 @@ function ProfilePage({ onLogout }) {
       if (!bd || Object.keys(bd).length === 0) {
         return (
           <>
-            <SectionDivider label="Your Answers vs Correct Answers" />
-            <div style={{ marginTop: "12px", padding: "16px", background: "#fff8e1", border: "1px solid #ffe082", borderRadius: "8px", fontSize: "0.83rem", color: "#7a5c00" }}>
-              ⚠️ Answer breakdown is available for tests taken after the latest update. Please retake this section to see your detailed results.
-            </div>
+           
           </>
         );
       }
@@ -1188,13 +1239,39 @@ function ProfilePage({ onLogout }) {
           {anyToefl && renderTestBlock({
             title: "Practice Test Results",
             subtitle: "Test TOEFL Practice Test",
-            totalBox: toeflTotal > 0 ? { value: toeflTotal, date: toeflReadingTest?.date } : null,
-            scoreBoxes: [
-              { label: "Reading",   value: tReading   !== null && tReading   > 0 ? `${tReading}/30`   : null, notAttempted: tReading   === null || tReading   === 0, date: toeflReadingTest?.date },
-              { label: "Listening", value: tListening !== null && tListening > 0 ? `${tListening}/30` : null, notAttempted: tListening === null || tListening === 0, date: toeflListeningTest?.date },
-              { label: "Speaking",  value: tSpeaking  !== null && tSpeaking  > 0 ? `${tSpeaking}/30`  : null, notAttempted: tSpeaking  === null || tSpeaking  === 0, date: toeflSpeakingTest?.date },
-              { label: "Writing",   value: tWriting   !== null && tWriting   > 0 ? `${tWriting}/30`   : null, notAttempted: tWriting   === null || tWriting   === 0, date: toeflWritingTest?.date },
-            ],
+totalBox:
+  toeflTotal > 0
+    ? {
+        value: `${toeflTotal}/120`,
+        date: toeflReadingTest?.date,
+      }
+    : null,
+          scoreBoxes: [
+  {
+    label: "Reading",
+    value: readingScore > 0 ? `${readingScore}/30` : null,
+    notAttempted: readingScore === 0,
+    date: toeflReadingTest?.date,
+  },
+  {
+    label: "Listening",
+    value: listeningScore > 0 ? `${listeningScore}/30` : null,
+    notAttempted: listeningScore === 0,
+    date: toeflListeningTest?.date,
+  },
+  {
+    label: "Speaking",
+    value: speakingScore > 0 ? `${speakingScore}/30` : null,
+    notAttempted: speakingScore === 0,
+    date: toeflSpeakingTest?.date,
+  },
+  {
+    label: "Writing",
+    value: writingScore > 0 ? `${writingScore}/30` : null,
+    notAttempted: writingScore === 0,
+    date: toeflWritingTest?.date,
+  },
+],
             sectionTabs: ["Reading", "Listening", "Speaking", "Writing"],
             activeTab: toeflTab,
             onTabChange: setToeflTab,
