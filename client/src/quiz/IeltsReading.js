@@ -68,7 +68,7 @@ const IELTS_DATA_READING = {
     { 
       id: 9, 
       text: "Perishable items were prevented from spoiling inside large refrigerators located in the store's ______.", 
-      answer: "stockroom" 
+       answer: "stockroom"
     },
     { 
       id: 10, 
@@ -82,12 +82,17 @@ const IELTS_DATA_READING = {
           instruction: "Questions 11-13: Choose the correct letter, A, B, C or D.",
           type: "mcq",
           items: [
-            {
-              id: 11,
-              text: " Why did Clarence Saunders want to propel the innovation of grocery stores at his age?",
-              options: ["A. Because he was an enthusiastic and creative man.", "B. Because his boss wanted to reform the grocery industry.", "C. Because he wanted to develop its efficiency and make great profit.", "D. Because he worried about competition."],
-              answer: "C"
-            },
+{
+  id: 11,
+  text: "Why did Clarence Saunders introduce his new grocery store concept?",
+  options: [
+    "A. Because he wanted to improve the efficiency of grocery shopping.",
+    "B. Because his employer asked him to redesign grocery stores.",
+    "C. Because he was afraid of losing customers to competitors.",
+    "D. Because he wanted to reduce the number of products sold."
+  ],
+  answer: "A"
+},
             {
               id: 12,
               text: " What happened to Clarence Saunders' first store of Piggly Wiggly?",
