@@ -15,7 +15,7 @@ import getApiBaseUrl from "../utils/api";
 // DATA
 // ==========================================
 const IELTS_DATA_LISTENING = {
-  title: "IELTS Listening Practice Test 1",
+  title: "IELTS Listening Practice Test",
   sections: [
     {
       id: "s1",
@@ -357,7 +357,6 @@ export default function IeltsListening() {
   const [audioError, setAudioError] = useState("");
   const [timeLeft, setTimeLeft] = useState(30 * 60);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
-  const [audioPlayError, setAudioPlayError] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
   const [announcement, setAnnouncement] = useState("");
 
@@ -365,11 +364,39 @@ export default function IeltsListening() {
   const answersRef = useRef({});
   const audioLastTimeRef = useRef({});
   const hasSubmittedRef = useRef(false);
+  // Mirrors hasStarted/showResult into a ref so the onPause handler
+  // (registered once on the <audio> element) always reads the current
+  // test state instead of a stale closure value.
+  const testActiveRef = useRef(false);
+  // Set right before we deliberately pause the audio ourselves (test
+  // submitted/ended). The onPause handler's "force resume" logic reads
+  // testActiveRef, but that ref only updates via a useEffect AFTER this
+  // render commits — so a same-tick pause() call would still see the
+  // old (true) value and immediately resume playback. This flag lets
+  // onPause recognize "we meant to stop it" regardless of ref timing.
+  const audioForceStopRef = useRef(false);
   const API_URL = getApiBaseUrl();
 
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
+
+  useEffect(() => {
+    testActiveRef.current = hasStarted && !showResult;
+  }, [hasStarted, showResult]);
+
+  // The onPause handler only stops the audio from being paused WHILE
+  // the test is active — it never actually pauses anything itself.
+  // Without this, submitting the test (showResult becomes true) leaves
+  // the recording running invisibly underneath the results screen.
+  // This explicitly stops playback the moment results are shown.
+  useEffect(() => {
+    if (showResult) {
+      Object.values(audioRefs.current).forEach((el) => {
+        if (el) el.pause();
+      });
+    }
+  }, [showResult]);
 
   // ==========================================
   // TIMER
@@ -403,31 +430,13 @@ export default function IeltsListening() {
     else if (timeLeft === 60) setAnnouncement("One minute remaining.");
   }, [timeLeft]);
 
-  // ==========================================
-  // AUTO PLAY NEXT AUDIO
-  // ==========================================
-  useEffect(() => {
-    const sectionIds = IELTS_DATA_LISTENING.sections.map((s) => s.id);
-
-    sectionIds.forEach((id, index) => {
-      const audio = audioRefs.current[id];
-      if (!audio) return;
-
-      audio.onended = () => {
-        const nextId = sectionIds[index + 1];
-        const nextAudio = nextId && audioRefs.current[nextId];
-
-        if (nextAudio) {
-          nextAudio.play().catch(() => {
-            // Autoplay was blocked (or the file is missing) — surface
-            // it instead of leaving the timer running in silence with
-            // no way for the person to continue.
-            setAudioPlayError(nextId);
-          });
-        }
-      };
-    });
-  }, [hasStarted]);
+  // NOTE: There used to be an "auto play next audio" effect here that
+  // chained separate <audio> elements for each section (s1 -> s2 -> s3
+  // -> s4) using onended. Since every section pointed at the exact same
+  // audio file, that just replayed the same recording four times back
+  // to back. The test now has a single audio player (Part 1's) that
+  // plays once, straight through — matching how a real listening test
+  // audio track works.
 
   // ==========================================
   // HELPERS
@@ -674,6 +683,14 @@ export default function IeltsListening() {
     setScore(s);
     setShowResult(true);
 
+    // Test is over — stop the audio immediately instead of letting it
+    // keep playing in the background underneath the results banner.
+    const audioEl = audioRefs.current["s1"];
+    if (audioEl && !audioEl.paused) {
+      audioForceStopRef.current = true;
+      audioEl.pause();
+    }
+
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -905,7 +922,6 @@ export default function IeltsListening() {
       </div>
     );
   };
-
   // ==========================================
   // MAP GROUP
   // ==========================================
@@ -1052,12 +1068,23 @@ export default function IeltsListening() {
   // ==========================================
   return (
     <>
-
-
       <div className="il-page">
         {/* TIMER */}
         <div className="il-timer-bar">
-          <h1>IELTS Listening Practice Test 1</h1>
+<div
+  className="il-timer-left"
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    width: "100%",
+  }}
+>
+  <h1 style={{ margin: 0 }}>IELTS Listening Practice Test</h1>
+  <span className="il-timer-subtitle">40 questions · 4 parts</span>
+</div>
 <style>{`
   *{
     box-sizing:border-box;
@@ -1089,88 +1116,86 @@ export default function IeltsListening() {
     width:100%;
     max-width:1200px;
     margin:auto;
-    padding:24px;
+    padding:20px 24px 40px;
   }
+/* =========================
+    TIMER BAR
+========================= */
 
-  /* =========================
-      TIMER BAR
-  ========================= */
+.il-timer-bar{
+  position: sticky;
+  top: 80px;
+  z-index: 999;
+  width: 100%;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  padding: 14px 24px;
 
-  .il-timer-bar{
-    position:sticky;
-    top:0;
-    z-index:999;
-    width:100%;
-    background:white;
-    border-bottom:1px solid #e5e7eb;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
-    padding:16px 24px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:20px;
-    flex-wrap:wrap;
-  }
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
 
-  .il-timer-bar h1{
-    margin:0;
-    font-size:clamp(18px,3vw,28px);
-    color:#047857;
-    font-weight:800;
-  }
+.il-timer-left{
+  grid-column: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
 
-  .il-timer-clock{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-size:18px;
-    font-weight:700;
-    color:#059669;
-    background:#ecfdf5;
-    border:1px solid #bbf7d0;
-    padding:10px 18px;
-    border-radius:999px;
-  }
+.il-timer-bar h1{
+  margin: 0;
+  font-size: clamp(16px,2.4vw,22px);
+  color: #047857;
+  font-weight: 800;
+  line-height: 1.2;
+}
 
-  .il-timer-right{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
-  }
+.il-timer-subtitle{
+  font-size: 12.5px;
+  color: #6b7280;
+  font-weight: 600;
+}
 
-  .il-progress-pill{
-    font-size:13px;
-    font-weight:700;
-    color:#047857;
-    background:#f0fdf4;
-    border:1px solid #bbf7d0;
-    padding:9px 16px;
-    border-radius:999px;
-    white-space:nowrap;
-  }
+.il-timer-right{
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-  .warning{
-    color:#dc2626;
-  }
+.il-timer-clock{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  padding: 10px 18px;
+  border-radius: 999px;
+}
 
-  /* =========================
-      TITLE
-  ========================= */
+.il-progress-pill{
+  font-size: 13px;
+  font-weight: 700;
+  color: #047857;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
 
-  .il-page-title{
-    font-size:clamp(30px,5vw,42px);
-    margin-bottom:10px;
-    color:#047857;
-    font-weight:800;
-  }
-
-  .il-page-subtitle{
-    color:#6b7280;
-    margin-bottom:28px;
-    line-height:1.6;
-    font-size:15px;
-  }
+.warning{
+  color: #dc2626;
+}
 
   /* =========================
       LIVE BADGE
@@ -1180,12 +1205,12 @@ export default function IeltsListening() {
     background:#ecfdf5;
     border:1px solid #bbf7d0;
     color:#047857;
-    padding:10px 16px;
+    padding:9px 16px;
     border-radius:999px;
     display:inline-flex;
     align-items:center;
     gap:8px;
-    margin-bottom:26px;
+    margin-bottom:16px;
     font-size:13px;
     font-weight:700;
   }
@@ -1210,9 +1235,9 @@ export default function IeltsListening() {
 
   .il-section{
     background:white;
-    border-radius:24px;
+    border-radius:18px;
     overflow:hidden;
-    margin-bottom:32px;
+    margin-bottom:20px;
     border:1px solid #e5e7eb;
     box-shadow:0 6px 24px rgba(0,0,0,.04);
   }
@@ -1228,7 +1253,7 @@ export default function IeltsListening() {
       #10b981
     );
     color:white;
-    padding:20px 24px;
+    padding:14px 22px;
   }
 
   .il-section-label{
@@ -1252,7 +1277,7 @@ export default function IeltsListening() {
     display:flex;
     gap:14px;
     align-items:center;
-    padding:18px 24px;
+    padding:12px 22px;
     background:#f9fafb;
     border-bottom:1px solid #e5e7eb;
     flex-wrap:wrap;
@@ -1269,44 +1294,35 @@ export default function IeltsListening() {
     min-width:220px;
   }
 
+  /* Disable the visible progress/seek bar in WebKit-based browsers
+     (Chrome, Edge, Safari) so it can't be dragged forward or back.
+     These are non-standard pseudo-elements with no Firefox equivalent —
+     the real enforcement lives in the onSeeking/onKeyDown handlers on
+     the <audio> element below, this is just a visual/UX layer on top. */
+  .il-audio-wrap audio::-webkit-media-controls-timeline{
+    pointer-events:none !important;
+    opacity:0.5 !important;
+  }
+
+  .il-audio-wrap audio::-webkit-media-controls-timeline-container{
+    pointer-events:none !important;
+  }
+
+  /* Once the test is submitted, the whole player is greyed out and
+     fully non-interactive — no play/pause, no scrubbing, nothing.
+     The audio is also stopped in JS at the same moment (see
+     handleCalculateScore), this is the matching visual state. */
+  .il-audio-wrap.il-audio-disabled{
+    opacity:0.5;
+    pointer-events:none;
+    filter:grayscale(40%);
+  }
+
   .il-audio-note{
     width:100%;
     font-size:12px;
     font-weight:400;
     color:#9ca3af;
-  }
-
-  .il-audio-error{
-    width:100%;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-    background:#fef2f2;
-    border:1px solid #fecaca;
-    color:#dc2626;
-    padding:10px 14px;
-    border-radius:10px;
-    font-size:13px;
-    font-weight:600;
-  }
-
-  .il-audio-retry-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    background:#dc2626;
-    color:white;
-    border:none;
-    padding:8px 14px;
-    border-radius:999px;
-    font-size:13px;
-    font-weight:700;
-    cursor:pointer;
-  }
-
-  .il-audio-retry-btn:hover{
-    background:#b91c1c;
   }
 
   .il-save-note{
@@ -1345,7 +1361,7 @@ export default function IeltsListening() {
   }
 
   .il-group{
-    padding:24px;
+    padding:18px 22px 6px;
   }
 
   /* =========================
@@ -1355,11 +1371,11 @@ export default function IeltsListening() {
   .il-instruction{
     background:#f0fdf4;
     border-left:4px solid #10b981;
-    padding:14px 16px;
-    margin-bottom:24px;
+    padding:12px 16px;
+    margin-bottom:16px;
     border-radius:10px;
-    line-height:1.7;
-    font-size:15px;
+    line-height:1.6;
+    font-size:14.5px;
     color:#065f46;
   }
 
@@ -1367,8 +1383,14 @@ export default function IeltsListening() {
       QUESTIONS
   ========================= */
 
+  .il-questions-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
+    column-gap:32px;
+  }
+
   .il-question{
-    padding:20px 0;
+    padding:14px 0;
     border-bottom:1px solid #f0f0f0;
   }
 
@@ -1455,19 +1477,19 @@ export default function IeltsListening() {
   .il-options{
     display:flex;
     flex-direction:column;
-    gap:12px;
-    margin-top:14px;
+    gap:8px;
+    margin-top:10px;
   }
 
   .il-option{
     display:flex;
     gap:12px;
-    padding:15px;
+    padding:11px 13px;
     border:1px solid #e5e7eb;
-    border-radius:14px;
+    border-radius:12px;
     cursor:pointer;
     transition:.25s;
-    line-height:1.6;
+    line-height:1.5;
     background:white;
   }
 
@@ -1690,10 +1712,10 @@ export default function IeltsListening() {
   .il-result-banner{
     background:white;
     color:#111827;
-    padding:36px 20px;
-    border-radius:24px;
+    padding:28px 20px;
+    border-radius:20px;
     text-align:center;
-    margin-bottom:30px;
+    margin-bottom:20px;
     border:2px solid #bbf7d0;
     box-shadow:0 8px 24px rgba(0,0,0,.05);
   }
@@ -1758,32 +1780,33 @@ export default function IeltsListening() {
 
   .il-start-card{
     width:100%;
-    max-width:520px;
+    max-width:460px;
     background:white;
-    border-radius:28px;
-    padding:36px 28px;
+    border-radius:24px;
+    padding:28px 26px;
     text-align:center;
     box-shadow:0 20px 50px rgba(0,0,0,.15);
   }
 
   .il-start-icon{
-    font-size:60px;
+    font-size:44px;
     color:#10b981;
-    margin-bottom:16px;
+    margin-bottom:10px;
   }
 
   .il-rules{
     text-align:left;
-    margin:24px 0;
+    margin:18px 0;
     background:#f9fafb;
-    padding:20px;
+    padding:16px 18px;
     border-radius:14px;
     border:1px solid #e5e7eb;
   }
 
   .il-rule{
-    margin-bottom:12px;
-    line-height:1.6;
+    margin-bottom:10px;
+    line-height:1.5;
+    font-size:14px;
   }
 
   .il-error{
@@ -1882,12 +1905,8 @@ export default function IeltsListening() {
 
   @media(max-width:480px){
 
-    .il-page-title{
-      font-size:24px;
-    }
-
     .il-timer-bar h1{
-      font-size:16px;
+      font-size:18px;
     }
 
     .il-q-num{
@@ -1954,8 +1973,8 @@ export default function IeltsListening() {
 
                 <div className="il-rules">
                   <div className="il-rule">
-                    • Audio plays once only — you cannot rewind or
-                    skip ahead, just like the real test
+                    • Audio plays once only — you cannot pause,
+                    rewind, or skip ahead, just like the real test
                   </div>
 
                   <div className="il-rule">
@@ -2027,15 +2046,6 @@ export default function IeltsListening() {
               </div>
             </div>
           )}
-
-          {/* HEADER */}
-          <h1 className="il-page-title">
-            IELTS Listening Practice Test 1
-          </h1>
-
-          <p className="il-page-subtitle">
-            Answer all 40 questions.
-          </p>
 
           {/* LIVE */}
           {hasStarted && !showResult && (
@@ -2113,59 +2123,96 @@ export default function IeltsListening() {
                   </div>
                 </div>
 
-                {/* AUDIO */}
-                <div className="il-audio-wrap">
-                  <span>Part {sIdx + 1} Audio</span>
+                {/* AUDIO — only Part 1 has a player. Every section used
+                    the exact same audio file, so instead of replaying it
+                    four separate times, there's a single player that runs
+                    once, straight through the whole test. */}
+                {sIdx === 0 && (
+                  <div
+                    className={`il-audio-wrap ${
+                      showResult ? "il-audio-disabled" : ""
+                    }`}
+                  >
+                    <span>Test Audio</span>
 
-                  <audio
-                    ref={(el) =>
-                      (audioRefs.current[section.id] = el)
-                    }
-                    src={section.audioSrc}
-                    controls
-                    controlsList="nodownload noplaybackrate"
-                    onTimeUpdate={(e) => {
-                      audioLastTimeRef.current[section.id] =
-                        e.target.currentTime;
-                    }}
-                    onSeeking={(e) => {
-                      const last =
-                        audioLastTimeRef.current[section.id] || 0;
-
-                      if (
-                        Math.abs(e.target.currentTime - last) > 1.5
-                      ) {
-                        e.target.currentTime = last;
+                    <audio
+                      ref={(el) =>
+                        (audioRefs.current[section.id] = el)
                       }
-                    }}
-                  />
+                      src={section.audioSrc}
+                      controls
+                      controlsList="nodownload noplaybackrate"
+                      onTimeUpdate={(e) => {
+                        audioLastTimeRef.current[section.id] =
+                          e.target.currentTime;
+                      }}
+                      onSeeking={(e) => {
+                        // No tolerance at all — ANY manual seek (drag,
+                        // click on the progress bar, or keyboard) gets
+                        // snapped straight back to the last known
+                        // playback position. This fully disables
+                        // scrubbing forward or backward, not just
+                        // large jumps like before.
+                        const el = e.target;
+                        const last =
+                          audioLastTimeRef.current[section.id] || 0;
 
-                  <span className="il-audio-note">
-                    No rewind or skip-ahead — just like the real exam
-                  </span>
+                        if (Math.abs(el.currentTime - last) > 0.05) {
+                          el.currentTime = last;
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Native <audio controls> lets arrow keys /
+                        // Home / End seek even before onSeeking can
+                        // correct it (the scrubber visibly jumps for a
+                        // moment). Block those keys outright so there's
+                        // no seek path left at all — mouse or keyboard.
+                        const blockedKeys = [
+                          "ArrowLeft",
+                          "ArrowRight",
+                          "Home",
+                          "End",
+                        ];
+                        if (blockedKeys.includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPause={(e) => {
+                        // Native <audio controls> always ships a pause
+                        // button — there's no controlsList value that
+                        // removes just that. Instead, treat any pause
+                        // that isn't the track actually finishing as
+                        // disallowed and resume immediately. This keeps
+                        // the recording running straight through, same
+                        // as the "no rewind/skip" behaviour above, and
+                        // matches the real test where audio can't be
+                        // paused, rewound, or skipped once it starts.
+                        const el = e.target;
 
-                  {audioPlayError === section.id && (
-                    <div className="il-audio-error">
-                      <FiAlertTriangle />
-                      <span>Audio didn't start automatically.</span>
-                      <button
-                        type="button"
-                        className="il-audio-retry-btn"
-                        onClick={() => {
-                          const audio = audioRefs.current[section.id];
-                          if (audio) {
-                            audio
-                              .play()
-                              .then(() => setAudioPlayError(null))
-                              .catch(() => {});
-                          }
-                        }}
-                      >
-                        <FiPlay /> Play Part {sIdx + 1}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        if (audioForceStopRef.current) {
+                          // This pause was triggered deliberately (test
+                          // submitted/ended) — let it stand.
+                          return;
+                        }
+
+                        if (!el.ended && testActiveRef.current) {
+                          // Re-invoking play() from inside a pause
+                          // handler can be ignored by some browsers if
+                          // called synchronously in the same tick, so
+                          // defer it slightly.
+                          setTimeout(() => {
+                            el.play().catch(() => {});
+                          }, 0);
+                        }
+                      }}
+                    />
+
+                    <span className="il-audio-note">
+                      No pause, rewind, or skip-ahead — just like the
+                      real exam
+                    </span>
+                  </div>
+                )}
 
                 {/* GROUPS */}
                 {section.questionGroups.map(
@@ -2181,11 +2228,15 @@ export default function IeltsListening() {
                           {grp.instruction}
                         </div>
 
-                        {grp.mapOptions
-                          ? renderMapGroup(grp)
-                          : grp.questions.map((item) =>
+                        {grp.mapOptions ? (
+                          renderMapGroup(grp)
+                        ) : (
+                          <div className="il-questions-grid">
+                            {grp.questions.map((item) =>
                               renderQuestion(item, maxWords)
                             )}
+                          </div>
+                        )}
                       </div>
                     );
                   }
