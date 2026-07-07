@@ -18,36 +18,17 @@ const formatTime = (dateString) => {
   });
 };
 
-// ── Attempt detector ──
-// Returns true only if the saved test result shows real evidence the user
-// actually answered something — not just that a "save" call fired.
-// This matters because sections like Listening auto-submit on a timer,
-// so a session the user never engaged with can still get saved with a
-// score of 0. Without this check, that empty session would be averaged
-// into the Total Score exactly like a real Band 0 attempt, which is
-// misleading. A genuine 0 (user answered everything, all wrong) is still
-// counted normally — the difference is whether any answer exists at all.
+
 const wasAttempted = (test) => {
   if (!test) return false;
   const result = test.result || {};
 
-  // Writing / Speaking-style results: an essay response or a positive
-  // score is the clearest evidence of a real attempt. IMPORTANT: this
-  // must be checked BEFORE the breakdown check below — Writing's
-  // `result.breakdown` holds criterion scores like
-  // { taskAchievement: 6, coherence: 5.5, ... }, which is a totally
-  // different shape from Reading/Listening's per-question breakdown.
-  // Checking essay/score signals first prevents a real Writing
-  // submission from being misread as "not attempted" just because its
-  // breakdown values don't have a `.user` field.
+ 
   if (result.essayTask1 || result.essayTask2 || result.essay) return true;
   if (typeof result.score === "number" && result.score > 0) return true;
   if (typeof result.rawScore === "number" && result.rawScore > 0) return true;
 
-  // Objective (multi-question) results: only trust the breakdown as a
-  // per-question answer map if its entries actually look like that shape
-  // (i.e. objects carrying a `correct` / `isCorrect` key), so we don't
-  // misinterpret Writing/TOEFL-style breakdowns the same way.
+
   const breakdownEntries = result.breakdown ? Object.values(result.breakdown) : null;
   if (breakdownEntries && breakdownEntries.length > 0) {
     const looksLikePerQuestion = breakdownEntries.every(
