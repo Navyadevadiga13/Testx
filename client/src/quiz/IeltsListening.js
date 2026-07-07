@@ -801,7 +801,7 @@ export default function IeltsListening() {
                       (showResult ? (
                         <span
                           className={`il-blank-result ${
-                            isCorrect ? "correct" : "wrong"
+                            isCorrect ? "il-blank-correct" : "il-blank-wrong"
                           }`}
                         >
                           {answers[item.id] || "—"}
@@ -1069,23 +1069,15 @@ export default function IeltsListening() {
   return (
     <>
       <div className="il-page">
-        {/* TIMER */}
-        <div className="il-timer-bar">
-<div
-  className="il-timer-left"
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-    width: "100%",
-  }}
->
-  <h1 style={{ margin: 0 }}>IELTS Listening Practice Test</h1>
-  <span className="il-timer-subtitle">40 questions · 4 parts</span>
-</div>
-<style>{`
+        {/*
+          NOTE: the <style> tag now lives here, at the top level of the
+          page, instead of being nested inside the timer bar. Previously
+          it was buried inside `.il-timer-bar` — which meant hiding the
+          timer bar (e.g. on the results screen) would have deleted all
+          the page's CSS along with it. Now styling is always present
+          regardless of what's conditionally rendered below.
+        */}
+        <style>{`
   *{
     box-sizing:border-box;
   }
@@ -1117,6 +1109,26 @@ export default function IeltsListening() {
     max-width:1200px;
     margin:auto;
     padding:20px 24px 40px;
+  }
+
+  /* The site's own navbar (logo, Home/About/Tests/Affordable Tests,
+     Profile) is a FIXED element sitting on top of this page's content
+     — it isn't part of this component and doesn't push anything down
+     on its own. While the test is running, the .il-timer-bar below
+     happens to occupy exactly the space underneath it, so nothing
+     important is ever hidden. But once results are shown, the timer
+     bar is unmounted entirely (see the JSX), and with nothing left to
+     reserve that space, the fixed navbar sits directly on top of the
+     "Test Complete" heading and clips it — this is the overlap in the
+     screenshot. This class restores that same reserved space on the
+     results screen only, using a static top padding instead of the
+     timer bar's sticky positioning, so the fixed navbar has something
+     to sit above no matter what.
+     NOTE: 100px is an estimate of the navbar's height from the
+     screenshot — adjust this number to match the exact pixel height of
+     your real Navbar component if it doesn't line up perfectly. */
+  .il-container-no-timer{
+    padding-top:100px;
   }
 /* =========================
     TIMER BAR
@@ -1461,6 +1473,36 @@ export default function IeltsListening() {
   .il-input-warning{
     border-bottom-color:#dc2626;
     background:#fef2f2;
+  }
+
+  /* =========================
+      FILL-BLANK RESULT (read-only, after submit)
+  ========================= */
+
+  .il-blank-result{
+    display:inline-block;
+    min-width:60px;
+    padding:3px 12px;
+    margin:0 4px;
+    border-radius:8px;
+    font-weight:700;
+    text-align:center;
+    line-height:1.4;
+    vertical-align:baseline;
+  }
+
+  .il-blank-correct{
+    background:#ecfdf5;
+    color:#047857;
+    border-bottom:2px solid #10b981;
+  }
+
+  .il-blank-wrong{
+    background:#fef2f2;
+    color:#dc2626;
+    border-bottom:2px solid #ef4444;
+    text-decoration:line-through;
+    text-decoration-color:#ef4444;
   }
 
   .il-word-warning{
@@ -1928,27 +1970,53 @@ export default function IeltsListening() {
     }
   }
 `}</style>
-          <div className="il-timer-right">
-            <div className="il-progress-pill">
-              {getAnsweredCount()}/{getTotalQuestions()} answered
+
+        {/*
+          TIMER BAR — only rendered while the test is in progress. Fully
+          unmounting it (rather than hiding its contents with
+          visibility:hidden) is what actually fixes the results-page
+          layout: a hidden-but-still-present bar keeps its white
+          background, border, and box-shadow, which showed up as an
+          empty ghost strip pushing the "Test Complete" card down and
+          out of view. With the bar removed from the tree entirely,
+          nothing reserves that space and the results card sits flush
+          under the site's real header.
+        */}
+        {!showResult && (
+          <div className="il-timer-bar">
+            <div className="il-timer-left">
+              <h1 style={{ margin: 0 }}>IELTS Listening Practice Test</h1>
+              <span className="il-timer-subtitle">
+                40 questions · 4 parts
+              </span>
             </div>
 
-            <div
-              className={`il-timer-clock ${
-                timeLeft < 300 ? "warning" : ""
-              }`}
-            >
-              <FiClock />
-              {formatTime(timeLeft)}
+            <div className="il-timer-right">
+              <div className="il-progress-pill">
+                {getAnsweredCount()}/{getTotalQuestions()} answered
+              </div>
+
+              <div
+                className={`il-timer-clock ${
+                  timeLeft < 300 ? "warning" : ""
+                }`}
+              >
+                <FiClock />
+                {formatTime(timeLeft)}
+              </div>
+            </div>
+
+            <div aria-live="polite" className="il-sr-only">
+              {announcement}
             </div>
           </div>
+        )}
 
-          <div aria-live="polite" className="il-sr-only">
-            {announcement}
-          </div>
-        </div>
-
-        <div className="il-container">
+        <div
+          className={`il-container ${
+            showResult ? "il-container-no-timer" : ""
+          }`}
+        >
           {/* START OVERLAY */}
           {!hasStarted && !showResult && (
             <div className="il-overlay">
