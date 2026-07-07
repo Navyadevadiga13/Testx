@@ -55,13 +55,13 @@ const IELTS_DATA_LISTENING = {
               id: "q5",
               text: "Use the picture with the ______ of the hotel.",
               type: "fill_blank",
-              answer: "view",
+              answer: ["view", "views"],
             },
             {
               id: "q6",
               text: "The ______ should be in red print.",
               type: "fill_blank",
-              answer: "price",
+              answer: ["price", "prices"],
             },
             {
               id: "q7",
@@ -287,19 +287,19 @@ const IELTS_DATA_LISTENING = {
               id: "q32",
               text: "They restrict their ______ on land from dusk till dawn.",
               type: "fill_blank",
-              answer: "movement",
+              answer: ["movement", "movements"],
             },
             {
               id: "q33",
               text: "They cannot fly because they have heavy ______.",
               type: "fill_blank",
-              answer: "bones",
+              answer: ["bone", "bones"],
             },
             {
               id: "q34",
               text: "They build nests in underground ______.",
               type: "fill_blank",
-              answer: "burrows",
+              answer: ["burrow", "burrows"],
             },
             {
               id: "q35",
@@ -311,19 +311,19 @@ const IELTS_DATA_LISTENING = {
               id: "q36",
               text: "Predators include seals, seagulls and ______.",
               type: "fill_blank",
-              answer: "sharks",
+              answer: ["shark", "sharks"],
             },
             {
               id: "q37",
               text: "Seagulls often eat the penguin ______.",
               type: "fill_blank",
-              answer: "eggs",
+              answer: ["egg", "eggs"],
             },
             {
               id: "q38",
               text: "Penguins replace old ______ during moulting.",
               type: "fill_blank",
-              answer: "feathers",
+              answer: ["feather", "feathers"],
             },
             {
               id: "q39",
@@ -1111,28 +1111,9 @@ export default function IeltsListening() {
     padding:20px 24px 40px;
   }
 
-  /* The site's own navbar (logo, Home/About/Tests/Affordable Tests,
-     Profile) is a FIXED element sitting on top of this page's content
-     — it isn't part of this component and doesn't push anything down
-     on its own. While the test is running, the .il-timer-bar below
-     happens to occupy exactly the space underneath it, so nothing
-     important is ever hidden. But once results are shown, the timer
-     bar is unmounted entirely (see the JSX), and with nothing left to
-     reserve that space, the fixed navbar sits directly on top of the
-     "Test Complete" heading and clips it — this is the overlap in the
-     screenshot. This class restores that same reserved space on the
-     results screen only, using a static top padding instead of the
-     timer bar's sticky positioning, so the fixed navbar has something
-     to sit above no matter what.
-     NOTE: 100px is an estimate of the navbar's height from the
-     screenshot — adjust this number to match the exact pixel height of
-     your real Navbar component if it doesn't line up perfectly. */
   .il-container-no-timer{
     padding-top:100px;
   }
-/* =========================
-    TIMER BAR
-========================= */
 
 .il-timer-bar{
   position: sticky;
@@ -1209,10 +1190,6 @@ export default function IeltsListening() {
   color: #dc2626;
 }
 
-  /* =========================
-      LIVE BADGE
-  ========================= */
-
   .il-live-badge{
     background:#ecfdf5;
     border:1px solid #bbf7d0;
@@ -1241,10 +1218,6 @@ export default function IeltsListening() {
     100%{opacity:1}
   }
 
-  /* =========================
-      SECTION CARD
-  ========================= */
-
   .il-section{
     background:white;
     border-radius:18px;
@@ -1253,10 +1226,6 @@ export default function IeltsListening() {
     border:1px solid #e5e7eb;
     box-shadow:0 6px 24px rgba(0,0,0,.04);
   }
-
-  /* =========================
-      SECTION HEADER
-  ========================= */
 
   .il-section-header{
     background:linear-gradient(
@@ -1281,10 +1250,6 @@ export default function IeltsListening() {
     font-weight:700;
   }
 
-  /* =========================
-      AUDIO WRAP
-  ========================= */
-
   .il-audio-wrap{
     display:flex;
     gap:14px;
@@ -1306,11 +1271,6 @@ export default function IeltsListening() {
     min-width:220px;
   }
 
-  /* Disable the visible progress/seek bar in WebKit-based browsers
-     (Chrome, Edge, Safari) so it can't be dragged forward or back.
-     These are non-standard pseudo-elements with no Firefox equivalent —
-     the real enforcement lives in the onSeeking/onKeyDown handlers on
-     the <audio> element below, this is just a visual/UX layer on top. */
   .il-audio-wrap audio::-webkit-media-controls-timeline{
     pointer-events:none !important;
     opacity:0.5 !important;
@@ -1320,10 +1280,6 @@ export default function IeltsListening() {
     pointer-events:none !important;
   }
 
-  /* Once the test is submitted, the whole player is greyed out and
-     fully non-interactive — no play/pause, no scrubbing, nothing.
-     The audio is also stopped in JS at the same moment (see
-     handleCalculateScore), this is the matching visual state. */
   .il-audio-wrap.il-audio-disabled{
     opacity:0.5;
     pointer-events:none;
@@ -1376,10 +1332,6 @@ export default function IeltsListening() {
     padding:18px 22px 6px;
   }
 
-  /* =========================
-      INSTRUCTION BOX
-  ========================= */
-
   .il-instruction{
     background:#f0fdf4;
     border-left:4px solid #10b981;
@@ -1390,10 +1342,6 @@ export default function IeltsListening() {
     font-size:14.5px;
     color:#065f46;
   }
-
-  /* =========================
-      QUESTIONS
-  ========================= */
 
   .il-questions-grid{
     display:grid;
@@ -1451,10 +1399,6 @@ export default function IeltsListening() {
     color:#111827;
   }
 
-  /* =========================
-      INPUT
-  ========================= */
-
   .il-input{
     border:none;
     border-bottom:2px solid #10b981;
@@ -1474,10 +1418,6 @@ export default function IeltsListening() {
     border-bottom-color:#dc2626;
     background:#fef2f2;
   }
-
-  /* =========================
-      FILL-BLANK RESULT (read-only, after submit)
-  ========================= */
 
   .il-blank-result{
     display:inline-block;
@@ -1511,10 +1451,6 @@ export default function IeltsListening() {
     font-weight:700;
     color:#dc2626;
   }
-
-  /* =========================
-      OPTIONS
-  ========================= */
 
   .il-options{
     display:flex;
@@ -1602,10 +1538,6 @@ export default function IeltsListening() {
     background:#ef4444;
   }
 
-  /* =========================
-      ANSWER REVEAL
-  ========================= */
-
   .il-answer-reveal{
     margin-top:12px;
     background:#f0fdf4;
@@ -1619,10 +1551,6 @@ export default function IeltsListening() {
     flex-shrink:0;
     padding-top:4px;
   }
-
-  /* =========================
-      MAP
-  ========================= */
 
   .il-map-layout{
     display:flex;
@@ -1713,10 +1641,6 @@ export default function IeltsListening() {
     box-shadow: inset 0 0 0 3px white;
   }
 
-  /* =========================
-      BUTTONS
-  ========================= */
-
   .il-submit-area{
     display:flex;
     justify-content:flex-end;
@@ -1746,10 +1670,6 @@ export default function IeltsListening() {
     background:#059669;
     transform:translateY(-2px);
   }
-
-  /* =========================
-      RESULT
-  ========================= */
 
   .il-result-banner{
     background:white;
@@ -1803,10 +1723,6 @@ export default function IeltsListening() {
     cursor:pointer;
     font-weight:700;
   }
-
-  /* =========================
-      START OVERLAY
-  ========================= */
 
   .il-overlay{
     position:fixed;
@@ -1884,8 +1800,6 @@ export default function IeltsListening() {
     transform:translateY(-2px);
   }
 
-  /* TABLET */
-
   @media(max-width:992px){
 
     .il-container{
@@ -1896,8 +1810,6 @@ export default function IeltsListening() {
       flex-direction:column;
     }
   }
-
-  /* MOBILE */
 
   @media(max-width:768px){
 
@@ -1943,8 +1855,6 @@ export default function IeltsListening() {
     }
   }
 
-  /* EXTRA SMALL */
-
   @media(max-width:480px){
 
     .il-timer-bar h1{
@@ -1971,17 +1881,6 @@ export default function IeltsListening() {
   }
 `}</style>
 
-        {/*
-          TIMER BAR — only rendered while the test is in progress. Fully
-          unmounting it (rather than hiding its contents with
-          visibility:hidden) is what actually fixes the results-page
-          layout: a hidden-but-still-present bar keeps its white
-          background, border, and box-shadow, which showed up as an
-          empty ghost strip pushing the "Test Complete" card down and
-          out of view. With the bar removed from the tree entirely,
-          nothing reserves that space and the results card sits flush
-          under the site's real header.
-        */}
         {!showResult && (
           <div className="il-timer-bar">
             <div className="il-timer-left">
@@ -2017,7 +1916,6 @@ export default function IeltsListening() {
             showResult ? "il-container-no-timer" : ""
           }`}
         >
-          {/* START OVERLAY */}
           {!hasStarted && !showResult && (
             <div className="il-overlay">
               <div className="il-start-card">
@@ -2065,7 +1963,6 @@ export default function IeltsListening() {
             </div>
           )}
 
-          {/* SUBMIT CONFIRM OVERLAY */}
           {showSubmitConfirm && (
             <div className="il-overlay">
               <div className="il-start-card">
@@ -2115,7 +2012,6 @@ export default function IeltsListening() {
             </div>
           )}
 
-          {/* LIVE */}
           {hasStarted && !showResult && (
             <div className="il-live-badge">
               <span className="il-live-dot"></span>
@@ -2123,7 +2019,6 @@ export default function IeltsListening() {
             </div>
           )}
 
-          {/* RESULT */}
           {showResult && (
             <div className="il-result-banner">
               <h2>Test Complete</h2>
@@ -2174,7 +2069,6 @@ export default function IeltsListening() {
             </div>
           )}
 
-          {/* SECTIONS */}
           {IELTS_DATA_LISTENING.sections.map(
             (section, sIdx) => (
               <div
@@ -2191,10 +2085,6 @@ export default function IeltsListening() {
                   </div>
                 </div>
 
-                {/* AUDIO — only Part 1 has a player. Every section used
-                    the exact same audio file, so instead of replaying it
-                    four separate times, there's a single player that runs
-                    once, straight through the whole test. */}
                 {sIdx === 0 && (
                   <div
                     className={`il-audio-wrap ${
@@ -2215,12 +2105,6 @@ export default function IeltsListening() {
                           e.target.currentTime;
                       }}
                       onSeeking={(e) => {
-                        // No tolerance at all — ANY manual seek (drag,
-                        // click on the progress bar, or keyboard) gets
-                        // snapped straight back to the last known
-                        // playback position. This fully disables
-                        // scrubbing forward or backward, not just
-                        // large jumps like before.
                         const el = e.target;
                         const last =
                           audioLastTimeRef.current[section.id] || 0;
@@ -2230,11 +2114,6 @@ export default function IeltsListening() {
                         }
                       }}
                       onKeyDown={(e) => {
-                        // Native <audio controls> lets arrow keys /
-                        // Home / End seek even before onSeeking can
-                        // correct it (the scrubber visibly jumps for a
-                        // moment). Block those keys outright so there's
-                        // no seek path left at all — mouse or keyboard.
                         const blockedKeys = [
                           "ArrowLeft",
                           "ArrowRight",
@@ -2246,28 +2125,13 @@ export default function IeltsListening() {
                         }
                       }}
                       onPause={(e) => {
-                        // Native <audio controls> always ships a pause
-                        // button — there's no controlsList value that
-                        // removes just that. Instead, treat any pause
-                        // that isn't the track actually finishing as
-                        // disallowed and resume immediately. This keeps
-                        // the recording running straight through, same
-                        // as the "no rewind/skip" behaviour above, and
-                        // matches the real test where audio can't be
-                        // paused, rewound, or skipped once it starts.
                         const el = e.target;
 
                         if (audioForceStopRef.current) {
-                          // This pause was triggered deliberately (test
-                          // submitted/ended) — let it stand.
                           return;
                         }
 
                         if (!el.ended && testActiveRef.current) {
-                          // Re-invoking play() from inside a pause
-                          // handler can be ignored by some browsers if
-                          // called synchronously in the same tick, so
-                          // defer it slightly.
                           setTimeout(() => {
                             el.play().catch(() => {});
                           }, 0);
@@ -2282,7 +2146,6 @@ export default function IeltsListening() {
                   </div>
                 )}
 
-                {/* GROUPS */}
                 {section.questionGroups.map(
                   (grp, gIdx) => {
                     const maxWords = getMaxWords(grp.instruction);
@@ -2313,7 +2176,6 @@ export default function IeltsListening() {
             )
           )}
 
-          {/* SUBMIT */}
           {!showResult && (
             <div className="il-submit-area">
               <button
