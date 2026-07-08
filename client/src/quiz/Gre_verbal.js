@@ -145,7 +145,7 @@ const verbalQuestions = [
 
 {
   id:20,
-  question:"Her speech was both inspiring and highly persuasive.",
+  question:"Her speech was both inspiring and highly _______.",
   options:["dull","persuasive","confusing","irrelevant"],
   answer:"persuasive"
 },

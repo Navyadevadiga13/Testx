@@ -795,8 +795,12 @@ totalBox:
             scoreBoxes: [
               { label: "Verbal",       value: greVerbal     !== null ? `${greVerbal}/170`     : null, notAttempted: greVerbal     === null, date: greVerbalTest?.date },
               { label: "Quantitative", value: greQuant      !== null ? `${greQuant}/170`      : null, notAttempted: greQuant      === null, date: greQuantTest?.date },
-              { label: "Analytical",   value: greAnalytical !== null ? `${greAnalytical}/6`   : null, notAttempted: greAnalytical === null, date: greAnalyticalTest?.date },
-            ],
+         {
+  label: "Analytical Writing\n(Not included in Overall Score)",
+  value: greAnalytical !== null ? `${greAnalytical}/6` : null,
+  notAttempted: greAnalytical === null,
+  date: greAnalyticalTest?.date
+}, ],
             sectionTabs: ["Verbal", "Quantitative", "Analytical"],
             activeTab: greTab,
             onTabChange: setGreTab,
