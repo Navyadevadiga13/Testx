@@ -65,11 +65,11 @@ const IELTS_DATA_READING = {
       text: "In the new grocery store format, the front area containing the checkouts was called the ______.", 
       answer: "lobby" 
     },
-    { 
-      id: 9, 
-      text: "Perishable items were prevented from spoiling inside large refrigerators located in the store's ______.", 
-       answer: "stockroom"
-    },
+{ 
+  id: 9, 
+  text: "Perishable items were prevented from spoiling inside large refrigerators located in the store's ______.", 
+  answer: "stockroom" 
+},
     { 
       id: 10, 
       text: "Supervisors could quietly keep an eye on customer behavior from elevated structures known as ______.", 
@@ -262,8 +262,11 @@ const IELTS_DATA_READING = {
             { id: 36, text: ") Ambiguous ______ are the source of some misunderstandings.", answer: "word choices" },
             { id: 37, text: ") Common people do not understand meaning via the ______ scientists employed.", answer: "colloquial terminology" },
             { id: 38, text: ") Measurements any ______ makes cannot be confined...", answer: "observer" },
-            { id: 39, text: ") Describe in a constant ______.", answer: "invariant description" },
-            { id: 40, text: ") A good example can be the theory of ______.", answer: "relativity" }
+{
+  id: 39,
+  text: "Einstein's theory aims to find an ______ description of physical phenomena.",
+  answer: "invariant"
+},{ id: 40, text: ") A good example can be the theory of ______.", answer: "relativity" }
           ]
         }
       ]
@@ -298,10 +301,10 @@ function checkAnswer(userAnswerRaw, correctAnswerRaw) {
   if (!userAns) return false;
 
   // Support multiple acceptable answers separated by "/" e.g. "colour/color"
-  if (correctAns.includes("/")) {
-    const possibleAnswers = correctAns.split("/").map(a => a.trim());
-    return possibleAnswers.includes(userAns);
-  }
+if (correctAns.includes("/")) {
+  const possibleAnswers = correctAns.split("/").map(a => a.trim());
+  return possibleAnswers.includes(userAns);
+}
 
   return userAns === correctAns;
 }

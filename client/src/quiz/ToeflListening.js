@@ -139,7 +139,7 @@ const PBT_LISTENING_DATA = [
     id: 11,
     part: "A",
     passage: "Man: Do you know when the art history paper is due?\nWoman: The syllabus says this Friday, but the professor might extend it.",
-    question: "What does the woman say about the paper due date?",
+    question: "What does the woman imply about the paper deadline?",
     options: [
       "It is definitely this Friday.",
       "It might be changed to a later date.",
@@ -281,7 +281,7 @@ const PBT_LISTENING_DATA = [
     id: 22,
     part: "C",
     passage: "Today we'll discuss the process of photosynthesis, which is how plants convert light energy into chemical energy. This occurs in the chloroplasts, specifically in structures called thylakoids. The thylakoids contain chlorophyll, the green pigment that captures light. The light energy is used to split water molecules, releasing oxygen as a byproduct. The hydrogen from water then combines with carbon dioxide to form glucose. This entire process is essential for life on Earth because it produces the oxygen we breathe and forms the base of most food chains.",
-    question: "Where does  occur within a plant cell?",
+    question: "Where does photosynthesis occur within a plant cell?",
     options: ["In the nucleus", "In the mitochondria", "In the chloroplasts", "In the cell wall"],
     correctAnswer: 2,
   },
@@ -406,7 +406,7 @@ if (!token) {
     Authorization: `Bearer ${token}` // ✅ FIXED
         },
         body: JSON.stringify({
-          testName: "TOEFL Listening (PBT)",
+          testName: "TOEFL Listening Practice Test (PBT Style)",
           result: {
             rawScore,
             total,
