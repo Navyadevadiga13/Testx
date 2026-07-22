@@ -21,7 +21,6 @@ const formatTime = (dateString) => {
   });
 };
 
-// ── Category / section detection from testName ──
 const getCategory = (testName = "") => {
   const n = testName.toLowerCase();
   if (n.includes("ielts")) return "IELTS";
@@ -59,7 +58,6 @@ const getDisplayScore = (test) => {
   return "—";
 };
 
-// ── Tips dictionary (shared across dashboard, mirrors ProfilePage tips) ──
 const TIPS = {
   IELTS: {
     Reading: ["Practice skimming and scanning techniques.", "Read academic articles daily to improve speed.", "Focus on understanding passage structure and keywords."],
@@ -80,10 +78,8 @@ const TIPS = {
   },
 };
 
-// ── Helper: get a sortable timestamp from a user (createdAt, or fallback to ObjectId's embedded timestamp) ──
 const getUserTimestamp = (user) => {
   if (user?.createdAt) return new Date(user.createdAt).getTime();
-  // Mongo ObjectIds encode creation time in their first 4 bytes (hex).
   if (user?._id && typeof user._id === "string" && user._id.length >= 8) {
     return parseInt(user._id.substring(0, 8), 16) * 1000;
   }
@@ -94,95 +90,117 @@ const PAGE_SIZE_USERS = 8;
 const PAGE_SIZE_TESTS = 8;
 
 // ─────────────────────────────────────────────
+// Design tokens — muted dark palette, accent used sparingly
+// ─────────────────────────────────────────────
+const C = {
+  bg: "#0a0b0d",
+  surface: "#111318",
+  surfaceRaised: "#161920",
+  border: "#22262e",
+  borderSoft: "#1a1d23",
+  text: "#eef1f4",
+  textMuted: "#9aa1ac",
+  textFaint: "#5c6470",
+  accent: "#3ddc97",
+  accentSoft: "rgba(61,220,151,0.12)",
+  accentBorder: "rgba(61,220,151,0.35)",
+  danger: "#f0616b",
+  fontStack:
+    "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+};
+
+const AVATAR_COLORS = ["#5b8def", "#3ddc97", "#f0a63d", "#e2618b", "#8a6df0", "#3dc0dc"];
+const avatarColorFor = (str = "") => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+};
+
+// ─────────────────────────────────────────────
 // Small presentational pieces
 // ─────────────────────────────────────────────
 
 const Spinner = ({ label = "Loading..." }) => (
-  <div style={{ padding: "4rem", textAlign: "center", color: "#7fd8ac" }}>{label}</div>
+  <div style={{ padding: "4rem", textAlign: "center", color: C.textMuted, fontFamily: C.fontStack, fontSize: "0.9rem" }}>{label}</div>
 );
 
 const ErrorBanner = ({ message }) => (
-  <div style={{ padding: "2rem", textAlign: "center", color: "#ff6b6b" }}>{message}</div>
+  <div style={{ padding: "1rem 1.25rem", background: "rgba(240,97,107,0.08)", border: `1px solid rgba(240,97,107,0.25)`, borderRadius: "10px", color: C.danger, fontFamily: C.fontStack, fontSize: "0.88rem" }}>
+    {message}
+  </div>
 );
 
 const BackButton = ({ onClick, label = "Back" }) => (
   <button
     onClick={onClick}
     style={{
-      display: "flex",
+      display: "inline-flex",
       alignItems: "center",
       gap: "6px",
-      background: "#111111",
-      color: "#19fd91",
-      border: "1px solid #2a3a32",
-      padding: "8px 16px",
+      background: C.surface,
+      color: C.textMuted,
+      border: `1px solid ${C.border}`,
+      padding: "8px 14px",
       borderRadius: "8px",
       fontSize: "0.82rem",
-      fontWeight: "700",
+      fontWeight: "600",
       cursor: "pointer",
-      marginBottom: "18px",
+      marginBottom: "20px",
+      fontFamily: C.fontStack,
+      transition: "all 0.15s ease",
     }}
+    onMouseOver={(e) => { e.currentTarget.style.color = C.text; e.currentTarget.style.borderColor = "#33383f"; }}
+    onMouseOut={(e) => { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.borderColor = C.border; }}
   >
-    <span style={{ fontSize: "1rem", lineHeight: 1 }}>←</span> {label}
+    <span style={{ fontSize: "0.95rem", lineHeight: 1 }}>←</span> {label}
   </button>
 );
 
 const Breadcrumbs = ({ items }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
+  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "18px", fontFamily: C.fontStack }}>
     {items.map((item, i) => (
       <React.Fragment key={i}>
-        {i > 0 && <span style={{ color: "#3a5a4a" }}>/</span>}
+        {i > 0 && <span style={{ color: C.textFaint, fontSize: "0.8rem" }}>/</span>}
         {item.onClick ? (
           <button
             onClick={item.onClick}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#19fd91",
-              cursor: "pointer",
-              fontSize: "0.85rem",
-              fontWeight: "700",
-              padding: 0,
-            }}
+            style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", fontSize: "0.82rem", fontWeight: "600", padding: 0 }}
           >
             {item.label}
           </button>
         ) : (
-          <span style={{ color: "#f5f5f5", fontSize: "0.85rem", fontWeight: "700" }}>{item.label}</span>
+          <span style={{ color: C.text, fontSize: "0.82rem", fontWeight: "700" }}>{item.label}</span>
         )}
       </React.Fragment>
     ))}
   </div>
 );
 
-// ── Sort dropdown ──
 const SortSelect = ({ value, onChange, options }) => (
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
     style={{
-      background: "#0a0a0a",
-      color: "#e8f8f0",
-      border: "1px solid #2a2a2a",
+      background: C.surface,
+      color: C.text,
+      border: `1px solid ${C.border}`,
       borderRadius: "8px",
       padding: "10px 14px",
-      fontSize: "0.85rem",
-      fontWeight: "600",
+      fontSize: "0.83rem",
+      fontWeight: "500",
       cursor: "pointer",
+      fontFamily: C.fontStack,
+      outline: "none",
     }}
   >
     {options.map((opt) => (
-      <option key={opt.value} value={opt.value}>
-        {opt.label}
-      </option>
+      <option key={opt.value} value={opt.value}>{opt.label}</option>
     ))}
   </select>
 );
 
-// ── Pagination controls ──
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
-
   const pages = [];
   const maxButtons = 5;
   let start = Math.max(1, page - Math.floor(maxButtons / 2));
@@ -190,97 +208,98 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
   if (end - start + 1 < maxButtons) start = Math.max(1, end - maxButtons + 1);
   for (let p = start; p <= end; p++) pages.push(p);
 
-  const btnStyle = (active) => ({
-    minWidth: "34px",
+  const btnStyle = (active, disabled) => ({
+    minWidth: "32px",
     padding: "7px 10px",
-    borderRadius: "6px",
-    border: `1px solid ${active ? "#19fd91" : "#2a2a2a"}`,
-    background: active ? "rgba(25,253,145,0.12)" : "#0a0a0a",
-    color: active ? "#19fd91" : "#c8c8c8",
-    fontSize: "0.8rem",
-    fontWeight: "700",
-    cursor: "pointer",
+    borderRadius: "7px",
+    border: `1px solid ${active ? C.accentBorder : C.border}`,
+    background: active ? C.accentSoft : "transparent",
+    color: disabled ? C.textFaint : active ? C.accent : C.textMuted,
+    fontSize: "0.78rem",
+    fontWeight: "600",
+    cursor: disabled ? "default" : "pointer",
+    fontFamily: C.fontStack,
   });
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "20px", flexWrap: "wrap" }}>
-      <button style={btnStyle(false)} onClick={() => onPageChange(1)} disabled={page === 1}>
-        « First
-      </button>
-      <button style={btnStyle(false)} onClick={() => onPageChange(page - 1)} disabled={page === 1}>
-        ‹ Prev
-      </button>
-      {start > 1 && <span style={{ color: "#5a5a5a" }}>…</span>}
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "6px", marginTop: "24px", flexWrap: "wrap" }}>
+      <button style={btnStyle(false, page === 1)} onClick={() => onPageChange(1)} disabled={page === 1}>« First</button>
+      <button style={btnStyle(false, page === 1)} onClick={() => onPageChange(page - 1)} disabled={page === 1}>‹ Prev</button>
+      {start > 1 && <span style={{ color: C.textFaint }}>…</span>}
       {pages.map((p) => (
-        <button key={p} style={btnStyle(p === page)} onClick={() => onPageChange(p)}>
-          {p}
-        </button>
+        <button key={p} style={btnStyle(p === page, false)} onClick={() => onPageChange(p)}>{p}</button>
       ))}
-      {end < totalPages && <span style={{ color: "#5a5a5a" }}>…</span>}
-      <button style={btnStyle(false)} onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>
-        Next ›
-      </button>
-      <button style={btnStyle(false)} onClick={() => onPageChange(totalPages)} disabled={page === totalPages}>
-        Last »
-      </button>
+      {end < totalPages && <span style={{ color: C.textFaint }}>…</span>}
+      <button style={btnStyle(false, page === totalPages)} onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>Next ›</button>
+      <button style={btnStyle(false, page === totalPages)} onClick={() => onPageChange(totalPages)} disabled={page === totalPages}>Last »</button>
     </div>
   );
 };
 
-// ── Question-by-question breakdown table (per-question style results) ──
+const Avatar = ({ name }) => {
+  const initial = name ? name.charAt(0).toUpperCase() : "?";
+  const color = avatarColorFor(name || "?");
+  return (
+    <div
+      style={{
+        width: "34px",
+        height: "34px",
+        borderRadius: "50%",
+        background: `${color}22`,
+        color,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "0.85rem",
+        fontWeight: "700",
+        flexShrink: 0,
+        border: `1px solid ${color}40`,
+      }}
+    >
+      {initial}
+    </div>
+  );
+};
+
 const QuestionBreakdownTable = ({ breakdown }) => {
   const rows = Object.entries(breakdown);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "14px" }}>
       {rows.map(([key, value], idx) => {
         const question = value?.question || value?.prompt || `Question ${idx + 1}`;
         const userAns = value?.user ?? value?.studentAnswer ?? value?.selected ?? "—";
         const correctAns = value?.correctAnswer ?? value?.answer ?? (typeof value?.correct === "string" || typeof value?.correct === "number" ? value.correct : "—");
         let isCorrect = value?.isCorrect;
         if (isCorrect === undefined) {
-          isCorrect =
-            userAns !== "—" && correctAns !== "—"
-              ? String(userAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase()
-              : null;
+          isCorrect = userAns !== "—" && correctAns !== "—" ? String(userAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase() : null;
         }
         return (
           <div
             key={key}
             style={{
-              background: "#0a0a0a",
-              border: `1px solid ${isCorrect === true ? "#1a7a4a" : isCorrect === false ? "#7a1a1a" : "#2a2a2a"}`,
-              borderRadius: "8px",
-              padding: "12px 14px",
+              background: C.surface,
+              border: `1px solid ${isCorrect === true ? "rgba(61,220,151,0.3)" : isCorrect === false ? "rgba(240,97,107,0.3)" : C.border}`,
+              borderRadius: "10px",
+              padding: "14px 16px",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", flexWrap: "wrap" }}>
-              <div style={{ fontSize: "0.85rem", color: "#f5f5f5", fontWeight: "600", flex: 1 }}>
-                {idx + 1}. {question}
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap" }}>
+              <div style={{ fontSize: "0.86rem", color: C.text, fontWeight: "600", flex: 1 }}>{idx + 1}. {question}</div>
               {isCorrect !== null && (
-                <span
-                  style={{
-                    fontSize: "0.72rem",
-                    fontWeight: "700",
-                    padding: "2px 10px",
-                    borderRadius: "20px",
-                    background: isCorrect ? "rgba(25,253,145,0.1)" : "rgba(255,82,82,0.1)",
-                    color: isCorrect ? "#19fd91" : "#ff6b6b",
-                    border: `1px solid ${isCorrect ? "rgba(25,253,145,0.3)" : "rgba(255,82,82,0.3)"}`,
-                    height: "fit-content",
-                  }}
-                >
+                <span style={{
+                  fontSize: "0.7rem", fontWeight: "700", padding: "3px 10px", borderRadius: "20px",
+                  background: isCorrect ? "rgba(61,220,151,0.1)" : "rgba(240,97,107,0.1)",
+                  color: isCorrect ? C.accent : C.danger,
+                  border: `1px solid ${isCorrect ? "rgba(61,220,151,0.3)" : "rgba(240,97,107,0.3)"}`,
+                  height: "fit-content",
+                }}>
                   {isCorrect ? "Correct" : "Incorrect"}
                 </span>
               )}
             </div>
-            <div style={{ display: "flex", gap: "20px", marginTop: "8px", flexWrap: "wrap" }}>
-              <div style={{ fontSize: "0.78rem", color: "#9a9a9a" }}>
-                Student answer: <strong style={{ color: "#f5f5f5" }}>{String(userAns)}</strong>
-              </div>
-              <div style={{ fontSize: "0.78rem", color: "#9a9a9a" }}>
-                Correct answer: <strong style={{ color: "#19fd91" }}>{String(correctAns)}</strong>
-              </div>
+            <div style={{ display: "flex", gap: "24px", marginTop: "10px", flexWrap: "wrap" }}>
+              <div style={{ fontSize: "0.78rem", color: C.textMuted }}>Student answer: <strong style={{ color: C.text }}>{String(userAns)}</strong></div>
+              <div style={{ fontSize: "0.78rem", color: C.textMuted }}>Correct answer: <strong style={{ color: C.accent }}>{String(correctAns)}</strong></div>
             </div>
           </div>
         );
@@ -289,44 +308,38 @@ const QuestionBreakdownTable = ({ breakdown }) => {
   );
 };
 
-// ── Writing task breakdown (prompt + response cards, e.g. TOEFL integrated tasks) ──
 const WritingTaskBreakdown = ({ breakdown }) => {
   const tasks = Object.entries(breakdown);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "14px" }}>
       {tasks.map(([taskId, task]) => (
-        <div key={taskId} style={{ background: "#0a0a0a", border: "1px solid #2a2a2a", borderRadius: "10px", padding: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
-            <div style={{ fontSize: "0.82rem", fontWeight: "800", color: "#f5f5f5" }}>{task.title || taskId}</div>
+        <div key={taskId} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "18px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+            <div style={{ fontSize: "0.85rem", fontWeight: "700", color: C.text }}>{task.title || taskId}</div>
             {task.wordCount !== undefined && (
-              <span
-                style={{
-                  fontSize: "0.72rem",
-                  fontWeight: "700",
-                  padding: "3px 10px",
-                  borderRadius: "20px",
-                  background: task.meetsMinimum ? "rgba(25,253,145,0.1)" : "rgba(255,82,82,0.1)",
-                  color: task.meetsMinimum ? "#19fd91" : "#ff6b6b",
-                  border: `1px solid ${task.meetsMinimum ? "rgba(25,253,145,0.3)" : "rgba(255,82,82,0.3)"}`,
-                }}
-              >
-                {task.wordCount} words {task.meetsMinimum ? "✅" : `❌ (min: ${task.minWords ?? "?"})`}
+              <span style={{
+                fontSize: "0.72rem", fontWeight: "700", padding: "3px 10px", borderRadius: "20px",
+                background: task.meetsMinimum ? "rgba(61,220,151,0.1)" : "rgba(240,97,107,0.1)",
+                color: task.meetsMinimum ? C.accent : C.danger,
+                border: `1px solid ${task.meetsMinimum ? "rgba(61,220,151,0.3)" : "rgba(240,97,107,0.3)"}`,
+              }}>
+                {task.wordCount} words {task.meetsMinimum ? "✓" : `(min: ${task.minWords ?? "?"})`}
               </span>
             )}
           </div>
           {task.prompt && (
-            <div style={{ background: "#000000", border: "1px solid #2a2a2a", borderRadius: "8px", padding: "10px 14px", marginBottom: "10px" }}>
-              <div style={{ fontSize: "0.65rem", fontWeight: "700", color: "#19fd91", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Prompt</div>
-              <p style={{ fontSize: "0.8rem", color: "#c8c8c8", lineHeight: "1.6", margin: 0, whiteSpace: "pre-wrap" }}>{task.prompt}</p>
+            <div style={{ background: C.bg, border: `1px solid ${C.borderSoft}`, borderRadius: "8px", padding: "12px 14px", marginBottom: "12px" }}>
+              <div style={{ fontSize: "0.65rem", fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>Prompt</div>
+              <p style={{ fontSize: "0.82rem", color: C.textMuted, lineHeight: "1.65", margin: 0, whiteSpace: "pre-wrap" }}>{task.prompt}</p>
             </div>
           )}
-          <div style={{ fontSize: "0.65rem", fontWeight: "700", color: "#9a9a9a", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>Student Response</div>
+          <div style={{ fontSize: "0.65rem", fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>Student Response</div>
           {task.response ? (
-            <p style={{ fontSize: "0.82rem", color: "#f5f5f5", lineHeight: "1.7", margin: 0, whiteSpace: "pre-wrap", maxHeight: "220px", overflowY: "auto", background: "#000000", border: "1px solid #2a2a2a", borderRadius: "8px", padding: "12px" }}>
+            <p style={{ fontSize: "0.84rem", color: C.text, lineHeight: "1.7", margin: 0, whiteSpace: "pre-wrap", maxHeight: "220px", overflowY: "auto", background: C.bg, border: `1px solid ${C.borderSoft}`, borderRadius: "8px", padding: "14px" }}>
               {task.response}
             </p>
           ) : (
-            <p style={{ fontSize: "0.82rem", color: "#5a5a5a", fontStyle: "italic", margin: 0 }}>No response submitted.</p>
+            <p style={{ fontSize: "0.82rem", color: C.textFaint, fontStyle: "italic", margin: 0 }}>No response submitted.</p>
           )}
         </div>
       ))}
@@ -337,22 +350,18 @@ const WritingTaskBreakdown = ({ breakdown }) => {
 const EssayBlock = ({ label, text }) => {
   if (!text) return null;
   return (
-    <div style={{ background: "#0a0a0a", border: "1px solid #2a2a2a", borderRadius: "10px", padding: "16px", marginTop: "12px" }}>
-      <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "#19fd91", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>📝 {label}</div>
-      <p style={{ fontSize: "0.82rem", color: "#f5f5f5", lineHeight: "1.8", margin: 0, whiteSpace: "pre-wrap", maxHeight: "260px", overflowY: "auto" }}>{text}</p>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "18px", marginTop: "14px" }}>
+      <div style={{ fontSize: "0.7rem", fontWeight: "700", color: C.accent, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>{label}</div>
+      <p style={{ fontSize: "0.84rem", color: C.text, lineHeight: "1.8", margin: 0, whiteSpace: "pre-wrap", maxHeight: "260px", overflowY: "auto" }}>{text}</p>
     </div>
   );
 };
-
-// ─────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────
 
 function AdminDashboard() {
   const navigate = useNavigate();
   const API_URL = getApiBaseUrl();
 
-  const [view, setView] = useState("list"); // "list" | "tests" | "detail"
+  const [view, setView] = useState("list");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -362,11 +371,9 @@ function AdminDashboard() {
   const [userResults, setUserResults] = useState([]);
   const [selectedTest, setSelectedTest] = useState(null);
 
-  // Sorting: "recent" (newest first) | "old" (oldest first)
   const [userSort, setUserSort] = useState("recent");
   const [testSort, setTestSort] = useState("recent");
 
-  // Pagination
   const [userPage, setUserPage] = useState(1);
   const [testPage, setTestPage] = useState(1);
 
@@ -375,10 +382,7 @@ function AdminDashboard() {
   const authFetch = useCallback(
     async (path) => {
       const token = getToken();
-      if (!token) {
-        navigate("/admin");
-        return null;
-      }
+      if (!token) { navigate("/admin"); return null; }
       const res = await fetch(`${API_URL}${path}`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
@@ -392,7 +396,6 @@ function AdminDashboard() {
     [API_URL, navigate]
   );
 
-  // ── Load user list ──
   useEffect(() => {
     const loadUsers = async () => {
       setLoading(true);
@@ -401,11 +404,8 @@ function AdminDashboard() {
         const res = await authFetch("/auth/admin/users");
         if (!res) return;
         const data = await res.json();
-        if (res.ok) {
-          setUsers(data.users || []);
-        } else {
-          setError(data.msg || "Failed to load users");
-        }
+        if (res.ok) setUsers(data.users || []);
+        else setError(data.msg || "Failed to load users");
       } catch (err) {
         console.error("Admin users fetch error:", err);
         setError("Server error while loading users");
@@ -416,7 +416,6 @@ function AdminDashboard() {
     loadUsers();
   }, [authFetch]);
 
-  // ── Load a specific user's test results ──
   const handleViewUser = async (user) => {
     setLoading(true);
     setError("");
@@ -427,12 +426,8 @@ function AdminDashboard() {
       const res = await authFetch(`/auth/admin/user/${user._id}/results`);
       if (!res) return;
       const data = await res.json();
-      if (res.ok) {
-        setUserResults(data.results || []);
-        setView("tests");
-      } else {
-        setError(data.msg || "Failed to load user results");
-      }
+      if (res.ok) { setUserResults(data.results || []); setView("tests"); }
+      else setError(data.msg || "Failed to load user results");
     } catch (err) {
       console.error("Admin user results fetch error:", err);
       setError("Server error while loading test results");
@@ -441,98 +436,58 @@ function AdminDashboard() {
     }
   };
 
-  const handleViewDetail = (test) => {
-    setSelectedTest(test);
-    setView("detail");
-  };
+  const handleViewDetail = (test) => { setSelectedTest(test); setView("detail"); };
+  const handleLogoutAdmin = () => { localStorage.removeItem("adminToken"); navigate("/admin"); };
 
-  const handleLogoutAdmin = () => {
-    localStorage.removeItem("adminToken");
-    navigate("/admin");
-  };
-
-  // Back button behavior per view:
-  // - list  -> leaves the admin dashboard entirely (goes to site home)
-  // - tests -> back to user list
-  // - detail -> back to that user's test list
   const handleBack = () => {
-    if (view === "tests") {
-      setView("list");
-      setSelectedUser(null);
-      setUserResults([]);
-    } else if (view === "detail") {
-      setView("tests");
-      setSelectedTest(null);
-    } else {
-      navigate("/");
-    }
+    if (view === "tests") { setView("list"); setSelectedUser(null); setUserResults([]); }
+    else if (view === "detail") { setView("tests"); setSelectedTest(null); }
+    else navigate("/");
   };
 
-  // ── Filter + sort + paginate: users ──
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = users;
-    if (q) {
-      list = list.filter(
-        (u) => (u.fullname || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q)
-      );
-    }
-    const sorted = [...list].sort((a, b) => {
-      const diff = getUserTimestamp(b) - getUserTimestamp(a); // newest first by default
+    if (q) list = list.filter((u) => (u.fullname || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q));
+    return [...list].sort((a, b) => {
+      const diff = getUserTimestamp(b) - getUserTimestamp(a);
       return userSort === "recent" ? diff : -diff;
     });
-    return sorted;
   }, [users, search, userSort]);
 
   const userTotalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE_USERS));
   const pagedUsers = filteredUsers.slice((userPage - 1) * PAGE_SIZE_USERS, userPage * PAGE_SIZE_USERS);
 
-  // Reset to page 1 whenever the search or sort changes
-  useEffect(() => {
-    setUserPage(1);
-  }, [search, userSort]);
+  useEffect(() => { setUserPage(1); }, [search, userSort]);
 
-  // ── Sort + paginate: a user's tests ──
   const sortedTests = useMemo(() => {
-    const sorted = [...userResults].sort((a, b) => {
-      const diff = new Date(b.date).getTime() - new Date(a.date).getTime(); // newest first by default
+    return [...userResults].sort((a, b) => {
+      const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
       return testSort === "recent" ? diff : -diff;
     });
-    return sorted;
   }, [userResults, testSort]);
 
   const testTotalPages = Math.max(1, Math.ceil(sortedTests.length / PAGE_SIZE_TESTS));
   const pagedTests = sortedTests.slice((testPage - 1) * PAGE_SIZE_TESTS, testPage * PAGE_SIZE_TESTS);
 
-  useEffect(() => {
-    setTestPage(1);
-  }, [testSort, userResults]);
+  useEffect(() => { setTestPage(1); }, [testSort, userResults]);
 
-  // ─────────────────────────────────────────
-  // Page shell — pure black, full-bleed
-  // ─────────────────────────────────────────
   const Shell = ({ children }) => (
-    <div style={{ minHeight: "100vh", width: "100%", background: "#000000", padding: "2.5rem 1rem" }}>
-      <div style={{ maxWidth: "980px", margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "12px" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: C.bg, padding: "3rem 1.5rem", fontFamily: C.fontStack }}>
+      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.75rem", flexWrap: "wrap", gap: "12px" }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: "1.6rem", fontWeight: "900", color: "#ffffff" }}>Admin Dashboard</h1>
-            <p style={{ margin: "6px 0 0", color: "#19fd91", fontSize: "0.85rem", fontWeight: "500" }}>
+            <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "700", color: C.text, letterSpacing: "-0.3px" }}>Admin Dashboard</h1>
+            <p style={{ margin: "6px 0 0", color: C.textMuted, fontSize: "0.86rem", fontWeight: "400" }}>
               Manage users and review test performance
             </p>
           </div>
           <button
             onClick={handleLogoutAdmin}
             style={{
-              background: "transparent",
-              color: "#ff6b6b",
-              border: "1px solid rgba(255,107,107,0.4)",
-              padding: "0.6rem 1.4rem",
-              borderRadius: "8px",
-              fontSize: "0.85rem",
-              fontWeight: "700",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
+              background: "transparent", color: C.danger, border: `1px solid rgba(240,97,107,0.35)`,
+              padding: "0.55rem 1.2rem", borderRadius: "8px", fontSize: "0.83rem", fontWeight: "600",
+              cursor: "pointer", whiteSpace: "nowrap", fontFamily: C.fontStack,
             }}
           >
             Log Out
@@ -544,9 +499,25 @@ function AdminDashboard() {
     </div>
   );
 
-  // ─────────────────────────────────────────
-  // View: user list
-  // ─────────────────────────────────────────
+  const tableWrap = { background: C.surface, border: `1px solid ${C.border}`, borderRadius: "14px", overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.25)" };
+  const tableHead = { display: "grid", padding: "14px 22px", background: C.surfaceRaised, fontSize: "0.7rem", fontWeight: "700", color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.7px", borderBottom: `1px solid ${C.border}` };
+  const tableRow = { display: "grid", padding: "16px 22px", borderTop: `1px solid ${C.borderSoft}`, alignItems: "center", transition: "background 0.12s ease" };
+
+  const OutlineBtn = ({ onClick, children }) => (
+    <button
+      onClick={onClick}
+      style={{
+        background: "transparent", color: C.accent, border: `1px solid ${C.accentBorder}`,
+        padding: "7px 16px", borderRadius: "7px", fontSize: "0.78rem", fontWeight: "600",
+        cursor: "pointer", fontFamily: C.fontStack, transition: "all 0.15s ease",
+      }}
+      onMouseOver={(e) => { e.currentTarget.style.background = C.accentSoft; }}
+      onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; }}
+    >
+      {children}
+    </button>
+  );
+
   if (view === "list") {
     return (
       <Shell>
@@ -557,24 +528,15 @@ function AdminDashboard() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
-              flex: 1,
-              minWidth: "220px",
-              padding: "12px 16px",
-              background: "#0a0a0a",
-              border: "1px solid #2a2a2a",
-              borderRadius: "8px",
-              color: "#f5f5f5",
-              fontSize: "0.9rem",
+              flex: 1, minWidth: "220px", padding: "12px 16px", background: C.surface,
+              border: `1px solid ${C.border}`, borderRadius: "9px", color: C.text,
+              fontSize: "0.88rem", fontFamily: C.fontStack, outline: "none",
             }}
           />
-          <SortSelect
-            value={userSort}
-            onChange={setUserSort}
-            options={[
-              { value: "recent", label: "Sort: Recent first" },
-              { value: "old", label: "Sort: Oldest first" },
-            ]}
-          />
+          <SortSelect value={userSort} onChange={setUserSort} options={[
+            { value: "recent", label: "Sort: Recent first" },
+            { value: "old", label: "Sort: Oldest first" },
+          ]} />
         </div>
 
         {loading && <Spinner label="Loading users..." />}
@@ -582,63 +544,26 @@ function AdminDashboard() {
 
         {!loading && !error && (
           <>
-            <div style={{ background: "#0a0a0a", border: "1px solid #1e1e1e", borderRadius: "14px", overflow: "hidden" }}>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "2fr 2.5fr 1fr",
-                  padding: "14px 20px",
-                  background: "#111111",
-                  fontSize: "0.72rem",
-                  fontWeight: "700",
-                  color: "#7fd8ac",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.8px",
-                }}
-              >
-                <div>Name</div>
-                <div>Email</div>
-                <div style={{ textAlign: "right" }}>Action</div>
+            <div style={tableWrap}>
+              <div style={{ ...tableHead, gridTemplateColumns: "2.5fr 2.5fr 1fr" }}>
+                <div>User</div><div>Email</div><div style={{ textAlign: "right" }}>Action</div>
               </div>
-
               {pagedUsers.length === 0 && (
-                <div style={{ padding: "3rem", textAlign: "center", color: "#5a5a5a" }}>No users found.</div>
+                <div style={{ padding: "3rem", textAlign: "center", color: C.textFaint, fontSize: "0.88rem" }}>No users found.</div>
               )}
-
               {pagedUsers.map((u) => (
-                <div
-                  key={u._id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "2fr 2.5fr 1fr",
-                    padding: "16px 20px",
-                    borderTop: "1px solid #1e1e1e",
-                    alignItems: "center",
-                  }}
-                >
-                  <div style={{ color: "#f5f5f5", fontSize: "0.88rem", fontWeight: "600" }}>{u.fullname || "—"}</div>
-                  <div style={{ color: "#9a9a9a", fontSize: "0.85rem" }}>{u.email}</div>
+                <div key={u._id} style={{ ...tableRow, gridTemplateColumns: "2.5fr 2.5fr 1fr" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <Avatar name={u.fullname} />
+                    <span style={{ color: C.text, fontSize: "0.88rem", fontWeight: "600" }}>{u.fullname || "—"}</span>
+                  </div>
+                  <div style={{ color: C.textMuted, fontSize: "0.85rem" }}>{u.email}</div>
                   <div style={{ textAlign: "right" }}>
-                    <button
-                      onClick={() => handleViewUser(u)}
-                      style={{
-                        background: "transparent",
-                        color: "#19fd91",
-                        border: "1px solid rgba(25,253,145,0.45)",
-                        padding: "8px 18px",
-                        borderRadius: "6px",
-                        fontSize: "0.8rem",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                      }}
-                    >
-                      View
-                    </button>
+                    <OutlineBtn onClick={() => handleViewUser(u)}>View</OutlineBtn>
                   </div>
                 </div>
               ))}
             </div>
-
             <Pagination page={userPage} totalPages={userTotalPages} onPageChange={setUserPage} />
           </>
         )}
@@ -646,23 +571,18 @@ function AdminDashboard() {
     );
   }
 
-  // ─────────────────────────────────────────
-  // View: a user's test history
-  // ─────────────────────────────────────────
   if (view === "tests") {
     return (
       <Shell>
-        <Breadcrumbs
-          items={[
-            { label: "Users", onClick: () => setView("list") },
-            { label: selectedUser?.fullname || "User" },
-          ]}
-        />
+        <Breadcrumbs items={[{ label: "Users", onClick: () => setView("list") }, { label: selectedUser?.fullname || "User" }]} />
 
-        <div style={{ background: "#0a0a0a", border: "1px solid #1e1e1e", borderRadius: "14px", padding: "20px", marginBottom: "20px" }}>
-          <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#f5f5f5" }}>{selectedUser?.fullname}</div>
-          <div style={{ fontSize: "0.85rem", color: "#9a9a9a", marginTop: "2px" }}>{selectedUser?.email}</div>
-          {selectedUser?.phone && <div style={{ fontSize: "0.8rem", color: "#5a5a5a", marginTop: "2px" }}>{selectedUser.phone}</div>}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "14px", padding: "20px 22px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "14px" }}>
+          <Avatar name={selectedUser?.fullname} />
+          <div>
+            <div style={{ fontSize: "1.05rem", fontWeight: "700", color: C.text }}>{selectedUser?.fullname}</div>
+            <div style={{ fontSize: "0.83rem", color: C.textMuted, marginTop: "2px" }}>{selectedUser?.email}</div>
+            {selectedUser?.phone && <div style={{ fontSize: "0.78rem", color: C.textFaint, marginTop: "2px" }}>{selectedUser.phone}</div>}
+          </div>
         </div>
 
         {loading && <Spinner label="Loading test history..." />}
@@ -671,79 +591,33 @@ function AdminDashboard() {
         {!loading && !error && (
           <>
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-              <SortSelect
-                value={testSort}
-                onChange={setTestSort}
-                options={[
-                  { value: "recent", label: "Sort: Recent first" },
-                  { value: "old", label: "Sort: Oldest first" },
-                ]}
-              />
+              <SortSelect value={testSort} onChange={setTestSort} options={[
+                { value: "recent", label: "Sort: Recent first" },
+                { value: "old", label: "Sort: Oldest first" },
+              ]} />
             </div>
 
-            <div style={{ background: "#0a0a0a", border: "1px solid #1e1e1e", borderRadius: "14px", overflow: "hidden" }}>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "2fr 1.3fr 1fr 1fr",
-                  padding: "14px 20px",
-                  background: "#111111",
-                  fontSize: "0.72rem",
-                  fontWeight: "700",
-                  color: "#7fd8ac",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.8px",
-                }}
-              >
-                <div>Test Name</div>
-                <div>Date</div>
-                <div>Score</div>
-                <div style={{ textAlign: "right" }}>Action</div>
+            <div style={tableWrap}>
+              <div style={{ ...tableHead, gridTemplateColumns: "2fr 1.3fr 1fr 1fr" }}>
+                <div>Test Name</div><div>Date</div><div>Score</div><div style={{ textAlign: "right" }}>Action</div>
               </div>
-
               {pagedTests.length === 0 && (
-                <div style={{ padding: "3rem", textAlign: "center", color: "#5a5a5a" }}>No tests taken yet.</div>
+                <div style={{ padding: "3rem", textAlign: "center", color: C.textFaint, fontSize: "0.88rem" }}>No tests taken yet.</div>
               )}
-
               {pagedTests.map((test) => (
-                <div
-                  key={test._id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "2fr 1.3fr 1fr 1fr",
-                    padding: "16px 20px",
-                    borderTop: "1px solid #1e1e1e",
-                    alignItems: "center",
-                  }}
-                >
-                  <div style={{ color: "#f5f5f5", fontSize: "0.85rem", fontWeight: "600" }}>{test.testName}</div>
-                  <div style={{ color: "#9a9a9a", fontSize: "0.8rem" }}>
-                    {formatDate(test.date)}
-                    <br />
-                    <span style={{ fontSize: "0.72rem", color: "#5a5a5a" }}>{formatTime(test.date)}</span>
+                <div key={test._id} style={{ ...tableRow, gridTemplateColumns: "2fr 1.3fr 1fr 1fr" }}>
+                  <div style={{ color: C.text, fontSize: "0.86rem", fontWeight: "600" }}>{test.testName}</div>
+                  <div style={{ color: C.textMuted, fontSize: "0.8rem" }}>
+                    {formatDate(test.date)}<br />
+                    <span style={{ fontSize: "0.72rem", color: C.textFaint }}>{formatTime(test.date)}</span>
                   </div>
-                  <div style={{ color: "#19fd91", fontSize: "0.85rem", fontWeight: "700" }}>{getDisplayScore(test)}</div>
+                  <div style={{ color: C.accent, fontSize: "0.86rem", fontWeight: "700" }}>{getDisplayScore(test)}</div>
                   <div style={{ textAlign: "right" }}>
-                    <button
-                      onClick={() => handleViewDetail(test)}
-                      style={{
-                        background: "transparent",
-                        color: "#19fd91",
-                        border: "1px solid rgba(25,253,145,0.4)",
-                        padding: "7px 14px",
-                        borderRadius: "6px",
-                        fontSize: "0.78rem",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                      }}
-                    >
-                      View Detailed
-                    </button>
+                    <OutlineBtn onClick={() => handleViewDetail(test)}>View Detailed</OutlineBtn>
                   </div>
                 </div>
               ))}
             </div>
-
             <Pagination page={testPage} totalPages={testTotalPages} onPageChange={setTestPage} />
           </>
         )}
@@ -751,15 +625,11 @@ function AdminDashboard() {
     );
   }
 
-  // ─────────────────────────────────────────
-  // View: detailed test review
-  // ─────────────────────────────────────────
   if (view === "detail" && selectedTest) {
     const result = selectedTest.result || {};
     const category = getCategory(selectedTest.testName);
     const section = getSection(selectedTest.testName);
     const tips = TIPS[category]?.[section] || [];
-
     const breakdown = result.breakdown;
     const breakdownEntries = breakdown ? Object.values(breakdown) : [];
     const isWritingTaskShape = breakdownEntries.some((v) => v && typeof v === "object" && ("response" in v || "prompt" in v));
@@ -767,79 +637,60 @@ function AdminDashboard() {
 
     return (
       <Shell>
-        <Breadcrumbs
-          items={[
-            { label: "Users", onClick: () => setView("list") },
-            { label: selectedUser?.fullname || "User", onClick: () => setView("tests") },
-            { label: selectedTest.testName },
-          ]}
-        />
+        <Breadcrumbs items={[
+          { label: "Users", onClick: () => setView("list") },
+          { label: selectedUser?.fullname || "User", onClick: () => setView("tests") },
+          { label: selectedTest.testName },
+        ]} />
 
-        <div style={{ background: "#0a0a0a", border: "1px solid #1e1e1e", borderRadius: "14px", padding: "24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", alignItems: "flex-start" }}>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "14px", padding: "26px", boxShadow: "0 4px 24px rgba(0,0,0,0.25)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "14px", alignItems: "flex-start" }}>
             <div>
-              <div style={{ fontSize: "1.2rem", fontWeight: "900", color: "#f5f5f5" }}>{selectedTest.testName}</div>
-              <div style={{ fontSize: "0.8rem", color: "#9a9a9a", marginTop: "4px" }}>
+              <div style={{ fontSize: "1.15rem", fontWeight: "700", color: C.text }}>{selectedTest.testName}</div>
+              <div style={{ fontSize: "0.82rem", color: C.textMuted, marginTop: "6px" }}>
                 Taken on {formatDate(selectedTest.date)} at {formatTime(selectedTest.date)}
               </div>
             </div>
-            <div
-              style={{
-                background: "#19fd91",
-                color: "#000000",
-                padding: "10px 22px",
-                borderRadius: "10px",
-                fontSize: "1.3rem",
-                fontWeight: "900",
-                textAlign: "center",
-                minWidth: "100px",
-              }}
-            >
+            <div style={{
+              background: C.accentSoft, color: C.accent, border: `1px solid ${C.accentBorder}`,
+              padding: "10px 22px", borderRadius: "10px", fontSize: "1.2rem", fontWeight: "700",
+              textAlign: "center", minWidth: "100px",
+            }}>
               {getDisplayScore(selectedTest)}
             </div>
           </div>
 
-          {/* Essay-style responses stored directly on result (IELTS Writing / GRE Analytical) */}
           <EssayBlock label="Task 1 — Response" text={result.essayTask1} />
           <EssayBlock label="Task 2 — Response" text={result.essayTask2} />
           <EssayBlock label="Essay Response" text={result.essay} />
 
-          {/* Breakdown: writing tasks (prompt + response per task) */}
           {isWritingTaskShape && (
             <>
-              <div style={{ fontSize: "0.9rem", fontWeight: "800", color: "#f5f5f5", marginTop: "24px", marginBottom: "4px" }}>
-                Task-by-Task Responses
-              </div>
+              <div style={{ fontSize: "0.88rem", fontWeight: "700", color: C.text, marginTop: "28px", marginBottom: "4px" }}>Task-by-Task Responses</div>
               <WritingTaskBreakdown breakdown={breakdown} />
             </>
           )}
 
-          {/* Breakdown: per-question comparison (Reading/Listening/Verbal/Quant style) */}
           {isQuestionShape && (
             <>
-              <div style={{ fontSize: "0.9rem", fontWeight: "800", color: "#f5f5f5", marginTop: "24px", marginBottom: "4px" }}>
-                Answer Comparison
-              </div>
+              <div style={{ fontSize: "0.88rem", fontWeight: "700", color: C.text, marginTop: "28px", marginBottom: "4px" }}>Answer Comparison</div>
               <QuestionBreakdownTable breakdown={breakdown} />
             </>
           )}
 
           {!isWritingTaskShape && !isQuestionShape && !result.essay && !result.essayTask1 && !result.essayTask2 && (
-            <div style={{ marginTop: "20px", padding: "16px", background: "#0a0a0a", border: "1px solid #2a2a2a", borderRadius: "8px", color: "#5a5a5a", fontSize: "0.85rem", textAlign: "center" }}>
+            <div style={{ marginTop: "22px", padding: "18px", background: C.bg, border: `1px solid ${C.borderSoft}`, borderRadius: "10px", color: C.textFaint, fontSize: "0.85rem", textAlign: "center" }}>
               No detailed response data available for this attempt.
             </div>
           )}
 
-          {/* Improvement tips */}
           {tips.length > 0 && (
-            <div style={{ marginTop: "24px", background: "#111111", border: "1px solid #1e1e1e", borderRadius: "10px", padding: "18px" }}>
-              <div style={{ fontSize: "0.85rem", fontWeight: "800", color: "#19fd91", marginBottom: "10px" }}>
-                💡 Areas to Improve — {section || category}
+            <div style={{ marginTop: "26px", background: C.surfaceRaised, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px" }}>
+              <div style={{ fontSize: "0.85rem", fontWeight: "700", color: C.accent, marginBottom: "12px" }}>
+                Areas to Improve — {section || category}
               </div>
-              <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "0.83rem", color: "#c8c8c8", lineHeight: "1.9" }}>
-                {tips.map((tip, i) => (
-                  <li key={i}>{tip}</li>
-                ))}
+              <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "0.84rem", color: C.textMuted, lineHeight: "1.95" }}>
+                {tips.map((tip, i) => <li key={i}>{tip}</li>)}
               </ul>
             </div>
           )}
