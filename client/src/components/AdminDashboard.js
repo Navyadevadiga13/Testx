@@ -545,19 +545,20 @@ function AdminDashboard() {
         {!loading && !error && (
           <>
             <div style={tableWrap}>
-              <div style={{ ...tableHead, gridTemplateColumns: "2.5fr 2.5fr 1fr" }}>
-                <div>User</div><div>Email</div><div style={{ textAlign: "right" }}>Action</div>
+              <div style={{ ...tableHead, gridTemplateColumns: "2.2fr 2.2fr 1.6fr 1fr" }}>
+                <div>User</div><div>Email</div><div>Study Preference</div><div style={{ textAlign: "right" }}>Action</div>
               </div>
               {pagedUsers.length === 0 && (
                 <div style={{ padding: "3rem", textAlign: "center", color: C.textFaint, fontSize: "0.88rem" }}>No users found.</div>
               )}
               {pagedUsers.map((u) => (
-                <div key={u._id} style={{ ...tableRow, gridTemplateColumns: "2.5fr 2.5fr 1fr" }}>
+                <div key={u._id} style={{ ...tableRow, gridTemplateColumns: "2.2fr 2.2fr 1.6fr 1fr" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                     <Avatar name={u.fullname} />
                     <span style={{ color: C.text, fontSize: "0.88rem", fontWeight: "600" }}>{u.fullname || "—"}</span>
                   </div>
                   <div style={{ color: C.textMuted, fontSize: "0.85rem" }}>{u.email}</div>
+                  <div style={{ color: C.textMuted, fontSize: "0.85rem" }}>{u.study_preference || "—"}</div>
                   <div style={{ textAlign: "right" }}>
                     <OutlineBtn onClick={() => handleViewUser(u)}>View</OutlineBtn>
                   </div>
