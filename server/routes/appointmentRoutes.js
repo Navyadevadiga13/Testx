@@ -40,7 +40,7 @@ router.post("/request", async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: "navyadevadiga1234@gmail.com",
+      to: "hello@wizx.org",
       subject: "New TOEFL Speaking Test Appointment Request",
 
       text: `
