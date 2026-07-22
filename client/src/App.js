@@ -46,6 +46,7 @@ import ToeflWritingIntro from "./quiz/ToeflcardWriting";
 import ToeflReadingInstructions from "./quiz/ToeflReadingInstructions";
 import ToeflWritingInstructions from "./quiz/ToeflWritingInstructions";
 import ToeflResultPage from "./quiz/ToeflResultPage";
+import AdminDashboard from "./components/AdminDashboard";
 
 // --- GRE & Other Tests ---
 import Gre_verbal from "./quiz/Gre_verbal";
@@ -78,6 +79,9 @@ function MainContent() {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ✅ NEW: true for /admin, /admin/dashboard, and any future /admin/* routes
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   const scrollToSection = (section) => {
     let ref = null;
@@ -129,15 +133,25 @@ function MainContent() {
     navigate(`/tests/${categoryId}`);
   };
 
+  // ✅ handler passed to AdminLogin
+  const handleAdminLogin = (data) => {
+    // data comes from the backend response: { msg, token }
+    localStorage.setItem("adminToken", data.token);
+    navigate("/admin/dashboard");
+  };
+
   return (
     <>
-      <Header
-        theme={theme}
-        setTheme={setTheme}
-        isLoggedIn={isLoggedIn}
-        showLogin={() => navigate("/login")}
-        goProfile={() => navigate("/profile")}
-      />
+      {/* ✅ NEW: Header hidden on all /admin routes so it doesn't overlap the dashboard */}
+      {!isAdminRoute && (
+        <Header
+          theme={theme}
+          setTheme={setTheme}
+          isLoggedIn={isLoggedIn}
+          showLogin={() => navigate("/login")}
+          goProfile={() => navigate("/profile")}
+        />
+      )}
       <Routes>
         {/* HOME PAGE */}
         <Route
@@ -163,7 +177,8 @@ function MainContent() {
         />
 
         {/* AUTH ROUTES */}
-        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminLogin onLogin={handleAdminLogin} />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} onSuccess={handleLogin} />} />
         <Route path="/signup" element={<SignupPage onSuccess={handleLogin} />} />
         <Route path="/profile" element={<ProfilePage onLogout={handleLogout} />} />
@@ -246,7 +261,8 @@ function MainContent() {
         } />
       </Routes>
 
-      {!["/login", "/signup"].includes(location.pathname) && <Footer />}
+      {/* ✅ NEW: Footer also hidden on /admin routes */}
+      {!["/login", "/signup"].includes(location.pathname) && !isAdminRoute && <Footer />}
     </>
   );
 }

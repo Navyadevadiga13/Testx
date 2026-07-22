@@ -90,13 +90,19 @@ function AdminLogin({ onLogin }) {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:5000/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+const response = await fetch("http://localhost:5008/api/auth/admin/login", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    username,
+    password,
+  }),
+});
 
     const data = await response.json();
+console.log(data);
 
     if (response.ok) {
       onLogin(data);
