@@ -65,10 +65,10 @@ const IELTS_DATA_READING = {
       text: "In the new grocery store format, the front area containing the checkouts was called the ______.", 
       answer: "lobby" 
     },
-{ 
-  id: 9, 
-  text: "Perishable items were prevented from spoiling inside large refrigerators located in the store's ______.", 
-  answer: "stockroom" 
+{
+  id: 9,
+  text: "Perishable items were prevented from spoiling inside large refrigerators located in the store's ______.",
+  answer: ["stockroom", "storage room"]
 },
     { 
       id: 10, 
