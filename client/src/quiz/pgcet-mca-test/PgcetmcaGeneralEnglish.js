@@ -63,11 +63,11 @@ const pgcetmcaGeneralEnglish = [
   {
     id: 100,
     question: `Direction: Read the sentence to find out whether there is any error in it. The error, if any, will be in one part of the sentence. The alphabet number of that part is the answer.
-    He have been / working here / since / three years.`,
+    He has been / working here / since / three years.`,
     options: ["A. A", "B. B", "C. C", "D. D"],
-    answer: "A"
+    answer: "C"
   }
- 
+
 ];
- 
+
 export default pgcetmcaGeneralEnglish;

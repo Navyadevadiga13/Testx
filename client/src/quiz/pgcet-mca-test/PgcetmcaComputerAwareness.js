@@ -7,12 +7,17 @@ const pgcetmcaComputerAwareness = [
     options: ["A. Only (i) is correct", "B. Both (i) and (ii) are correct", "C. Only (ii) is correct", "D. Both are incorrect"],
     answer: "B"
   },
-  {
-    id: 32,
-    question: "Arrange the given list of memories in decreasing order of speed.",
-    options: ["A. Primary memory", "B. Cache, Registers, Secondary memory, Primary memory", "C. Registers, Cache, Primary memory, Secondary memory, Cache, Registers, Secondary memory", "D. Secondary memory, Primary memory, Cache, Registers"],
-    answer: "C"
-  },
+{
+  id: 32,
+  question: "Arrange the following memories in decreasing order of speed.",
+  options: [
+    "A. Registers, Cache, Primary Memory, Secondary Memory",
+    "B. Cache, Registers, Primary Memory, Secondary Memory",
+    "C. Primary Memory, Cache, Registers, Secondary Memory",
+    "D. Secondary Memory, Primary Memory, Cache, Registers"
+  ],
+  answer: "A"
+},
   {
     id: 33,
     question: "Which of the following are examples of high-level programming languages?",
@@ -45,12 +50,22 @@ const pgcetmcaComputerAwareness = [
     options: ["A. Transaction Control Language (TCL)", "B. Data Definition Language (DDL)", "C. Data Control Language (DCL)", "D. Data Manipulation Language (DML)"],
     answer: "D"
   },
-  {
-    id: 38,
-    question: "The control unit of a computer goes through an instruction cycle divided into which phases?",
-    options: ["A. Only (a) is correct", "B. (a), (b) and (c) are correct", "C. Only (a) and (b) are correct", "D. (a), (b), (c) and (d) are correct"],
-    answer: "B"
-  },
+{
+  id: 38,
+  question: `The control unit of a computer goes through an instruction cycle divided into:
+(a) Fetch
+(b) Decode
+(c) Execute
+(d) Store
+Which of the following is correct?`,
+  options: [
+    "A. Only (a) is correct",
+    "B. (a), (b) and (c) are correct",
+    "C. Only (a) and (b) are correct",
+    "D. (a), (b), (c) and (d) are correct"
+  ],
+  answer: "D"
+},
   {
     id: 39,
     question: "Full form of LAMP is _______ with respect to web applications.",
@@ -160,12 +175,17 @@ const pgcetmcaComputerAwareness = [
     options: ["A. Both (i) and (ii) are incorrect", "B. Only (ii) is correct", "C. Both (i) and (ii) are correct", "D. Only (i) is correct"],
     answer: "D"
   },
-  {
-    id: 55,
-    question: "Which of the following best describes an IP address?",
-    options: ["A. Only (i) is correct", "B. A password used to log into a computer", "C. The physical location of a server", "D. A type of virus that spreads through networks"],
-    answer: "A"
-  }
+{
+  id: 55,
+  question: "Which of the following best describes an IP address?",
+  options: [
+    "A. A unique numerical address assigned to a device on a network",
+    "B. A password used to log into a computer",
+    "C. The physical location of a server",
+    "D. A type of virus that spreads through networks"
+  ],
+  answer: "A"
+}
 
 ];
  

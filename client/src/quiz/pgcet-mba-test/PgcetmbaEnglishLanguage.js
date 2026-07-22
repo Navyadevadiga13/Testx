@@ -101,7 +101,7 @@ const pgcetmbaEnglishLanguage = [
   },
   {
     id: 76,
-    question: "Five colleagues P, Q, R, S, T sit in a row facing north. R sits to the immediate left of Q. S sits at one of the extreme ends. P sits second to the right of S. T sits between P and Q. Who sits at the other extreme end?",
+    question: "Five colleagues P, Q, R, S, T sit in a row facing north. R sits to the immediate left of Q. S sits at one of the extreme ends. P sits second to the right of S. T sits between S and P. Who sits at the other extreme end?",
     options: ["A. R", "B. Q", "C. T", "D. Cannot be determined"],
     answer: "B"
   },
@@ -119,13 +119,13 @@ const pgcetmbaEnglishLanguage = [
   },
   {
     id: 79,
-    question: "In a certain code, 'GARDEN' is written as '132951814', where each letter is assigned its position value doubled. Using the same logic, what is the code for 'HOUSE'?",
+    question: "In a certain code, 'GARDEN' is written as '14 2 36 8 10 28', where each letter is assigned its position value doubled. Using the same logic, what is the code for 'HOUSE'?",
     options: ["A. 16 30 42 38 10", "B. 16 30 42 38 8", "C. 8 15 21 19 5", "D. 16 15 42 38 10"],
     answer: "A"
   },
   {
     id: 80,
-    question: "Six people A, B, C, D, E, F are sitting around a circular table facing the centre. B sits third to the right of A. C sits immediately left of B. D sits opposite A. Who sits immediately right of D?",
+    question: "Six people A, B, C, D, E, F are sitting around a circular table facing the centre. B sits second to the right of A. C sits immediately left of B. D sits opposite A. Who sits immediately right of D?",
     options: ["A. E or F (cannot be determined without more data)", "B. C", "C. B", "D. A"],
     answer: "A"
   }

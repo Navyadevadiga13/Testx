@@ -107,7 +107,7 @@ const pgcetmbaGeneralKnowledge = [
   },
   {
     id: 97,
-    question: "The area of a rectangular field is 3,750 sq. m and its length is 1.5 times its breadth. Find the perimeter of the field.",
+    question: "The area of a rectangular field is 5,400 sq. m and its length is 1.5 times its breadth. Find the perimeter of the field.",
     options: ["A. 300 m", "B. 310 m", "C. 320 m", "D. 290 m"],
     answer: "A"
   },

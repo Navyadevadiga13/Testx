@@ -35,12 +35,12 @@ const pgcetmcaMathematics = [
     options: ["A. 625", "B. 120", "C. 24", "D. 20"],
     answer: "B"
   },
-  {
-    id: 6,
-    question: "The cost of 4 pens and 3 pencils is Rs. 41 and the cost of 2 pens and 5 pencils is Rs. 29. The cost of each pen in Rs. is",
-    options: ["A. 6", "B. 7", "C. 8", "D. 9"],
-    answer: "C"
-  },
+{
+  id: 6,
+  question: "The cost of 3 pens and 2 pencils is Rs. 32 and the cost of 2 pens and 3 pencils is Rs. 28. The cost of each pen in Rs. is",
+  options: ["A. 6", "B. 7", "C. 8", "D. 9"],
+  answer: "C"
+},
   {
     id: 7,
     question: "The equation of the line passing through the points (2, 3) and (4, -1) is",
@@ -65,12 +65,17 @@ const pgcetmcaMathematics = [
     options: ["A. (4, 2)", "B. (-4, 2)", "C. (4, -2)", "D. (-4, -2)"],
     answer: "C"
   },
-  {
-    id: 11,
-    question: "The equation of the parabola which is symmetric about the x-axis and passes through the point ",
-    options: ["A. y² = 6x", "B. y² = -12x", "C. x² = 12y", "D. y² = 12x"],
-    answer: "D"
-  },
+{
+  id: 11,
+  question: "The equation of the parabola symmetric about the x-axis, with vertex at the origin, and passing through the point (3, 6) is",
+  options: [
+    "A. y² = 12x",
+    "B. y² = -12x",
+    "C. x² = 12y",
+    "D. y² = 6x"
+  ],
+  answer: "A"
+},
   {
     id: 12,
     question: `Match the postulates in List-I with the expressions in List-II.
@@ -111,24 +116,34 @@ const pgcetmcaMathematics = [
     options: ["A. θ = nπ + (-1)ⁿ π/3, n ∈ I", "B. θ = 2nπ ± π/6, n ∈ I", "C. θ = 2nπ ± π/3, n ∈ I", "D. θ = nπ + (-1)ⁿ π/6, n ∈ I"],
     answer: "D"
   },
-  {
-    id: 18,
-    question: "In a right-angled isosceles triangle ABC, right angle at B, if side b = 4, then sides a and c are respectively",
-    options: ["A. 4/√2, 4/√2", "B. 4, 4", "C. 2√2, 2√2", "D. 8, 4"],
-    answer: "A"
-  },
+{
+  id: 18,
+  question: "In a right-angled isosceles triangle ABC, right angle at B, if side b = 4, then sides a and c are respectively",
+  options: [
+    "A. 2, 2",
+    "B. 4, 4",
+    "C. 2√2, 2√2",
+    "D. 8, 4"
+  ],
+  answer: "C"
+},
   {
     id: 19,
     question: "tan⁻¹(1) + tan⁻¹(1/2) + tan⁻¹(1/3) =",
     options: ["A. π", "B. π/4", "C. π/2", "D. 3π/4"],
     answer: "C"
   },
-  {
-    id: 20,
-    question: "Two dice are thrown and the sum of the numbers is noted. Among the events A: sum is odd, B: sum is a multiple of 4, C: sum is less than 5, D: sum is greater than 10, which pair is mutually exclusive?",
-    options: ["A. B and D", "B. A and C", "C. C and D", "D. A and B"],
-    answer: "D"
-  },
+{
+  id: 20,
+  question: "Two dice are thrown and the sum of the numbers is noted. Among the events A: sum is odd, B: sum is a multiple of 4, C: sum is less than 5, D: sum is greater than 10, which pair is mutually exclusive?",
+  options: [
+    "A. B and C",
+    "B. A and C",
+    "C. B and D",
+    "D. A and B"
+  ],
+  answer: "D"
+},
   {
     id: 21,
     question: "Two students 'P' and 'Q' appeared for an exam. The probability that 'P' will qualify is 0.08 and that 'Q' will qualify is 0.12. The probability that both 'P' and 'Q' will qualify is 0.03. Find the probability that neither 'P' nor 'Q' will qualify.",
@@ -159,10 +174,10 @@ const pgcetmcaMathematics = [
     options: ["A. 8", "B. 16", "C. 64", "D. 32"],
     answer: "D"
   },
-  {
+{
     id: 26,
     question: "A committee of two persons is selected from three men and two women. What is the probability that the committee will have one man and one woman?",
-    options: ["A. 3/5", "B. 2/5", "C. 1/2", "D. 3/5"],
+    options: ["A. 1/5", "B. 2/5", "C. 1/2", "D. 3/5"],
     answer: "D"
   },
   {
@@ -171,12 +186,17 @@ const pgcetmcaMathematics = [
     options: ["A. 9", "B. 6", "C. 3", "D. 12"],
     answer: "A"
   },
-  {
-    id: 28,
-    question: "If a, b, c are in Arithmetic Progression, then 1/bc, 1/ca, 1/ab are in",
-    options: ["A. Harmonic Progression", "B. Geometric Progression", "C. Arithmetic Progression", "D. None of the above"],
-    answer: "C"
-  },
+{
+  id: 28,
+  question: "If a, b, c are in Arithmetic Progression, then 1/bc, 1/ca, 1/ab are in",
+  options: [
+    "A. Harmonic Progression",
+    "B. Geometric Progression",
+    "C. Arithmetic Progression",
+    "D. None of the above"
+  ],
+  answer: "C"
+},
   {
     id: 29,
     question: "The equation of the ellipse with major axis along the x-axis, centre at origin, passing through (4, 0) and (0, 3) is",

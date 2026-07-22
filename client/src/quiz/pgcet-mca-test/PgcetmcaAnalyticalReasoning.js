@@ -40,12 +40,12 @@ const pgcetmcaAnalyticalReasoning = [
     options: ["A. 5 km", "B. 3 km", "C. 8 km", "D. 13 km"],
     answer: "B"
   },
-  {
-    id: 62,
-    question: "Five years ago, a father was 4 times as old as his son. Ten years hence, the father will be twice as old as his son. What is the father's present age?",
-    options: ["A. 35 years", "B. 40 years", "C. 50 years", "D. 45 years"],
-    answer: "D"
-  },
+{
+  id: 62,
+  question: "Five years ago, a father was 4 times as old as his son. Ten years hence, the father will be twice as old as his son. What is the father's present age?",
+  options: ["A. 35 years", "B. 40 years", "C. 50 years", "D. 45 years"],
+  answer: "A"
+},
   {
     id: 63,
     question: " In a class of 40 students, 18 play chess, 20 play carrom, and 6 play both games. How many students play neither chess nor carrom?",

@@ -5,7 +5,7 @@ const pgcetmcaGeneralAwareness = [
     (a) Unicorns are startups valued at over one billion US dollars.
     (b) The Reserve Bank of India is the regulator of the insurance sector in India.
     (c) GST in India follows a dual structure comprising CGST and SGST.
-    (d) Zomato and Swiggy primarily operate in the quick-commerce food delivery segment.`,
+    (d) Zomato and Swiggy are among India's largest online food delivery platforms.`,
     options: ["A. (a), (b), (c) and (d)", "B. (a), (b) and (c)", "C. (b), (c) and (d)", "D. (a), (c) and (d)"],
     answer: "D"
   },
@@ -102,7 +102,7 @@ const pgcetmcaGeneralAwareness = [
     question: `Consider the following statements and select the correct answer using the codes given below.
     (I) Secondary market deals with the trading of already-issued securities.
     (II) Capital market is a market for short-term transactions.
-    (III) SEBI was established in the year 1988.
+    (III) SEBI was established as a statutory regulatory body under the SEBI Act in the year 1988.
     (IV) Money market is a market for long-term transactions.`,
     options: ["A. (I) and (III) are correct", "B. (I) is correct only", "C. (I), (II), (III) and (IV) are correct", "D. (II) and (IV) are correct"],
     answer: "B"
@@ -122,7 +122,7 @@ const pgcetmcaGeneralAwareness = [
     Statement-II: Under India's federal structure, health is primarily a state subject.
     Which of the following is correct in respect of the above statements?`,
     options: ["A. Statement-I is incorrect but Statement-II is correct", "B. Both are correct but Statement-II does not explain Statement-I", "C. Statement-I is correct but Statement-II is incorrect", "D. Both Statement-I and Statement-II are correct, and Statement-II is the correct explanation for Statement-I"],
-    answer: "D"
+    answer: "B"
   },
   {
     id: 86,
@@ -162,4 +162,3 @@ const pgcetmcaGeneralAwareness = [
 ];
  
 export default pgcetmcaGeneralAwareness;
- 
