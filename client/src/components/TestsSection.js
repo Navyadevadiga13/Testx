@@ -9,6 +9,11 @@ import {
   FaPenFancy,
   FaMicrophone,
   FaUniversity,
+  FaGraduationCap,
+  FaClipboardList,
+  FaCalculator,
+  FaStopwatch,
+  FaChartLine,
 } from "react-icons/fa";
 
 import { useNavigate } from "react-router-dom";
@@ -55,7 +60,7 @@ function TestsSection({ isLoggedIn }) {
     {
       id: "toefl",
       title: "TOEFL Mock",
-      subtitle: "TOEFL Mock Test",
+      subtitle: "iBT Practice Test",
       icon: <FaUniversity />,
       buttons: [
         {
@@ -101,6 +106,71 @@ function TestsSection({ isLoggedIn }) {
           label: "Analytical Writing",
           icon: <FaChartPie />,
           action: () => handleStart("/quiz/GRE/analytical-writing"),
+        },
+      ],
+    },
+    {
+      id: "pgcet",
+      title: "PGCET MCA Mock",
+      subtitle: "Karnataka PGCET MCA Practice Test — 100 Qs · 120 Min",
+      icon: <FaGraduationCap />,
+      buttons: [
+        {
+          label: "Start Mock Test",
+          icon: <FaClipboardList />,
+          action: () => handleStart("/quiz/pgcet"),
+        },
+      ],
+    },
+    {
+      id: "pgcet-mba",
+      title: "PGCET MBA Mock",
+      subtitle: "Karnataka PGCET MBA Practice Test — 100 Qs · 120 Min",
+      icon: <FaGraduationCap />,
+      buttons: [
+        {
+          label: "Start Mock Test",
+          icon: <FaClipboardList />,
+          action: () => handleStart("/quiz/pgcet-mba"),
+        },
+      ],
+    },
+    {
+      id: "gmat",
+      title: "GMAT Mock Test",
+      subtitle: "Adaptive practice — Quant, Verbal, Data Insights, or Full Test",
+      icon: <FaCalculator />,
+      buttons: [
+        {
+          label: "Explore Practice Modes",
+          icon: <FaClipboardList />,
+          action: () => handleStart("/quiz/gmat"),
+        },
+      ],
+    },
+    {
+      id: "cat",
+      title: "CAT Mock Test",
+      subtitle: "Fixed-paper sectional test — VARC · DILR · QA — 68 Qs · 120 Min",
+      icon: <FaStopwatch />,
+      buttons: [
+        {
+          label: "Start Mock Test",
+          icon: <FaClipboardList />,
+          action: () => handleStart("/quiz/cat"),
+        },
+      ],
+    },
+    {
+      id: "mat",
+      title: "MAT Mock Test",
+      subtitle: "AIMA MAT Practice Test — 150 Qs · 120 Min · Raw + Composite Score",
+      icon: <FaChartLine />,
+      buttons: [
+        {
+          label: "Start Mock Test",
+          icon: <FaClipboardList />,
+          action: () => handleStart("/quiz/mat"),
         },
       ],
     },

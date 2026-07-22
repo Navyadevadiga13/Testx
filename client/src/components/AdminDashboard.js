@@ -78,12 +78,22 @@ const TIPS = {
   },
 };
 
+// Ranks a user by their most recent test activity so whoever took a
+// test most recently surfaces first. Users who haven't taken any test
+// yet (no lastTestDate) fall back to their account creation time, and
+// rank below anyone with actual test activity — see getUserSortRank.
 const getUserTimestamp = (user) => {
+  if (user?.lastTestDate) return new Date(user.lastTestDate).getTime();
   if (user?.createdAt) return new Date(user.createdAt).getTime();
   if (user?._id && typeof user._id === "string" && user._id.length >= 8) {
     return parseInt(user._id.substring(0, 8), 16) * 1000;
   }
   return 0;
+};
+
+const getUserSortRank = (user) => {
+  const hasTaken = !!user?.lastTestDate;
+  return { hasTaken, timestamp: getUserTimestamp(user) };
 };
 
 const PAGE_SIZE_USERS = 8;
@@ -445,12 +455,22 @@ function AdminDashboard() {
     else navigate("/");
   };
 
+  // Sort users so that anyone with test activity ranks above anyone
+  // without any (getUserSortRank.hasTaken), then order by most/least
+  // recent activity timestamp within each of those two groups based
+  // on the selected sort direction. This is what makes "took a test
+  // today" surface at the very top of the list.
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = users;
     if (q) list = list.filter((u) => (u.fullname || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q));
     return [...list].sort((a, b) => {
-      const diff = getUserTimestamp(b) - getUserTimestamp(a);
+      const rankA = getUserSortRank(a);
+      const rankB = getUserSortRank(b);
+      if (rankA.hasTaken !== rankB.hasTaken) {
+        return rankA.hasTaken ? -1 : 1;
+      }
+      const diff = rankB.timestamp - rankA.timestamp;
       return userSort === "recent" ? diff : -diff;
     });
   }, [users, search, userSort]);
