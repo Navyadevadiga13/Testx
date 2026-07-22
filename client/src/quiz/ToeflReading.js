@@ -216,12 +216,25 @@ function ToeflReading() {
   const calculateTotalScore = async () => {
     let correctCount = 0;
     let total = 0;
+    const breakdown = [];
 
     currentModule.sections.forEach((section, sIdx) => {
       section.questions.forEach((q) => {
         total++;
-        const userAnswer = mcAnswers[`${sIdx}-${q.id}`];
-        if (parseInt(userAnswer) === q.correct) correctCount++;
+        const rawAnswer = mcAnswers[`${sIdx}-${q.id}`];
+        const userIdx = rawAnswer !== undefined ? parseInt(rawAnswer) : NaN;
+        const isCorrect = userIdx === q.correct;
+        if (isCorrect) correctCount++;
+
+        const entry = {
+          number: q.id,
+          questionText: q.question,
+          userAnswerText: rawAnswer === undefined ? "No answer" : q.options[userIdx],
+          correctAnswerText: q.options[q.correct],
+          isCorrect,
+        };
+        if (q.explanation) entry.explanation = q.explanation;
+        breakdown.push(entry);
       });
     });
 
@@ -239,7 +252,7 @@ function ToeflReading() {
         },
         body: JSON.stringify({
           testName: "TOEFL Reading Test",
-          result: { rawScore: correctCount, total, percentage, toeflScore }
+          result: { rawScore: correctCount, total, percentage, toeflScore, breakdown }
         })
       });
 
@@ -251,7 +264,7 @@ function ToeflReading() {
       }
 
       navigate('/quiz/toefl/result', {
-        state: { correctCount, total, toeflScore, testType: "Reading (PBT)" }
+        state: { correctCount, total, toeflScore, testType: "Reading (PBT)", breakdown }
       });
     } catch (error) {
       console.error("Error saving TOEFL result:", error);

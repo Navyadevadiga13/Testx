@@ -5,8 +5,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
-console.log('ADMIN_USERNAME loaded:', JSON.stringify(process.env.ADMIN_USERNAME));
-console.log('ADMIN_PASSWORD loaded:', JSON.stringify(process.env.ADMIN_PASSWORD));
 
 // Fix for MongoDB querySrv ECONNREFUSED issue on some networks
 if (process.env.MONGO_URI && process.env.MONGO_URI.startsWith('mongodb+srv')) {

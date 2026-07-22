@@ -4,6 +4,27 @@ import axios from "axios";
 import getApiBaseUrl from "../utils/api";
 import "react-datepicker/dist/react-datepicker.css";
 
+// Formats a Date using its local calendar fields (not UTC), so the date sent
+// to the backend always matches the day the user actually picked/sees in the
+// confirmation alert — toISOString() would shift it back a day for any
+// positive-UTC-offset timezone (e.g. India, where WiZdom Center is located).
+function toLocalDateString(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return width;
+}
+
 function ToeflSpeaking({ initialDate, onDateChange }) {
 
   const [selectedDate, setSelectedDate] = useState(initialDate || null);
@@ -11,6 +32,9 @@ function ToeflSpeaking({ initialDate, onDateChange }) {
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [contact, setContact] = useState("");
+
+  const width = useWindowWidth();
+  const isMobile = width < 768;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -47,7 +71,7 @@ function ToeflSpeaking({ initialDate, onDateChange }) {
           fullname,
           email,
           contact,
-          date: selectedDate.toISOString().split("T")[0]
+          date: toLocalDateString(selectedDate)
         }
       );
 
@@ -84,15 +108,18 @@ Your test slot will be confirmed during the call.`
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        paddingTop: "170px",
+        paddingTop: isMobile ? "110px" : "170px",
+        paddingLeft: isMobile ? "12px" : 0,
+        paddingRight: isMobile ? "12px" : 0,
         minHeight: "100vh",
         backgroundColor: "#ffffff",
-        fontFamily: "Segoe UI, sans-serif"
+        fontFamily: "Segoe UI, sans-serif",
+        boxSizing: "border-box"
       }}
     >
       <div
         style={{
-          padding: "35px",
+          padding: isMobile ? "22px" : "35px",
           borderRadius: "14px",
           border: "1px solid #e5e5e5",
           boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
@@ -101,8 +128,10 @@ Your test slot will be confirmed during the call.`
           alignItems: "center",
           backgroundColor: "#f9f9f9",
           gap: "20px",
-          minWidth: "340px",
-          maxWidth: "420px"
+          width: isMobile ? "100%" : undefined,
+          minWidth: isMobile ? "0" : "340px",
+          maxWidth: "420px",
+          boxSizing: "border-box"
         }}
       >
 
@@ -206,7 +235,8 @@ Your test slot will be confirmed during the call.`
             customInput={
               <input
                 style={{
-                  width: "260px",
+                  width: isMobile ? "100%" : "260px",
+                  maxWidth: "260px",
                   padding: "14px",
                   borderRadius: "10px",
                   border: "2px solid #19fd91",
@@ -216,7 +246,8 @@ Your test slot will be confirmed during the call.`
                   textAlign: "center",
                   cursor: "pointer",
                   outline: "none",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+                  boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+                  boxSizing: "border-box"
                 }}
               />
             }

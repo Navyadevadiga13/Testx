@@ -295,18 +295,19 @@ function getPassageRange(passage) {
 // Fixes the old bug where MCQ/matching answers were compared using
 // only their first character (charAt(0)) instead of the full string.
 function checkAnswer(userAnswerRaw, correctAnswerRaw) {
-  const userAns = (userAnswerRaw || "").trim().toLowerCase();
-  const correctAns = (correctAnswerRaw || "").trim().toLowerCase();
+  const userAns = (userAnswerRaw || "").toString().trim().toLowerCase();
 
   if (!userAns) return false;
 
-  // Support multiple acceptable answers separated by "/" e.g. "colour/color"
-if (correctAns.includes("/")) {
-  const possibleAnswers = correctAns.split("/").map(a => a.trim());
-  return possibleAnswers.includes(userAns);
-}
+  // A question's answer key is normally a single string, optionally with
+  // "/"-separated alternates (e.g. "colour/color"). A few entries instead
+  // list alternates as an array (e.g. ["stockroom", "storage room"]) — treat
+  // each array element the same way a "/"-alternate would be treated.
+  const possibleAnswers = Array.isArray(correctAnswerRaw)
+    ? correctAnswerRaw.map((a) => (a || "").toString().trim().toLowerCase())
+    : (correctAnswerRaw || "").toString().trim().toLowerCase().split("/").map((a) => a.trim());
 
-  return userAns === correctAns;
+  return possibleAnswers.includes(userAns);
 }
 
 // ── IELTS Academic Reading raw-score → band conversion ──
@@ -1049,6 +1050,52 @@ export default function IeltsReading() {
       display: inline-block;
     }
 
+    .answer-review {
+      margin-top: 0.65rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      border-left: 4px solid;
+      font-size: 0.82rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .answer-review.is-correct {
+      background: #f0fdf4;
+      border-left-color: #16a34a;
+    }
+
+    .answer-review.is-wrong {
+      background: #fee2e2;
+      border-left-color: #ef4444;
+    }
+
+    .answer-review-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      line-height: 1.5;
+    }
+
+    .answer-review-label {
+      font-weight: 700;
+      color: #14532d;
+      flex-shrink: 0;
+    }
+
+    .answer-review.is-wrong .answer-review-label {
+      color: #991b1b;
+    }
+
+    .answer-review-value {
+      color: #14532d;
+    }
+
+    .answer-review.is-wrong .answer-review-value {
+      color: #991b1b;
+    }
+
     /* BUTTONS */
     .btn-primary {
       background: #16a34a;
@@ -1382,9 +1429,30 @@ export default function IeltsReading() {
                           </div>
                         )}
 
-                        {showResult && !result && (
-                          <div className="wrong-hint">
-                            Correct: <strong style={{ color: "white" }}>{item.answer}</strong>
+                        {showResult && (
+                          <div className={`answer-review ${result ? "is-correct" : "is-wrong"}`}>
+                            <div className="answer-review-row">
+                              <span className="answer-review-label">Your Answer:</span>
+                              <span className="answer-review-value">
+                                {answers[item.id] && answers[item.id].toString().trim() !== ""
+                                  ? answers[item.id]
+                                  : "No answer given"}
+                              </span>
+                            </div>
+                            {!result && (
+                              <div className="answer-review-row">
+                                <span className="answer-review-label">Correct Answer:</span>
+                                <span className="answer-review-value">
+                                  {Array.isArray(item.answer) ? item.answer.join(" / ") : item.answer}
+                                </span>
+                              </div>
+                            )}
+                            {item.explanation && (
+                              <div className="answer-review-row">
+                                <span className="answer-review-label">Explanation:</span>
+                                <span className="answer-review-value">{item.explanation}</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

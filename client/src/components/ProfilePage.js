@@ -239,6 +239,77 @@ const GreAnalyticalBreakdown = ({ result }) => {
   );
 };
 
+// ── Per-question review list — shared by IELTS Reading/Listening and
+// TOEFL Reading/Listening. Two saved shapes exist across test types:
+//  - array of { number, questionText, userAnswerText, correctAnswerText,
+//    isCorrect, explanation } (TOEFL Reading/Listening)
+//  - object keyed by question id: { [id]: { user, correct, isCorrect } }
+//    (IELTS Reading/Listening)
+// This normalizes both into the same row shape before rendering.
+const AnswerBreakdown = ({ breakdown }) => {
+  if (!breakdown) return null;
+
+  const rows = Array.isArray(breakdown)
+    ? breakdown.map((item, idx) => ({
+        key: item.number ?? idx,
+        number: item.number ?? idx + 1,
+        questionText: item.questionText,
+        userAnswerText: item.userAnswerText,
+        correctAnswerText: item.correctAnswerText,
+        isCorrect: !!item.isCorrect,
+        explanation: item.explanation,
+      }))
+    : Object.entries(breakdown).map(([id, item], idx) => ({
+        key: id,
+        number: idx + 1,
+        questionText: null,
+        userAnswerText: Array.isArray(item?.user) ? item.user.join(", ") : item?.user,
+        correctAnswerText: Array.isArray(item?.correct) ? item.correct.join(" / ") : item?.correct,
+        isCorrect: !!item?.isCorrect,
+        explanation: item?.explanation,
+      }));
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: "16px" }}>
+      {rows.map((row, idx) => (
+        <div key={row.key} style={{
+          display: "flex", gap: "10px", alignItems: "flex-start",
+          padding: "12px 0",
+          borderTop: idx === 0 ? "none" : "1px solid #e8e8e8",
+        }}>
+          <div style={{
+            flexShrink: 0, width: "26px", height: "26px", borderRadius: "6px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "0.75rem", fontWeight: "700",
+            background: row.isCorrect ? "#e8f8f0" : "#fff5f5",
+            color: row.isCorrect ? "#1a7a4a" : "#dc2626",
+          }}>
+            {row.isCorrect ? "✓" : "✕"}
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: "700", color: "#333", marginBottom: "4px" }}>
+              Question {row.number}{row.questionText ? `. ${row.questionText}` : ""}
+            </div>
+            <div style={{ fontSize: "0.82rem", color: "#555", lineHeight: "1.6" }}>
+              <div>
+                Your answer: <strong>
+                  {row.userAnswerText && String(row.userAnswerText).trim() !== "" ? row.userAnswerText : "No answer"}
+                </strong>
+              </div>
+              {!row.isCorrect && (
+                <div>Correct answer: <strong>{row.correctAnswerText}</strong></div>
+              )}
+              {row.explanation && <div>Explanation: {row.explanation}</div>}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // ── Divider ──
 const SectionDivider = ({ label }) => (
   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", marginTop: "20px" }}>
@@ -558,8 +629,18 @@ const getTOEFLNote = (score) => {
           </>
         );
       }
-      // Reading / Listening / Speaking: no answer breakdown anymore
-      return null;
+      // Speaking is an appointment booking, not an auto-graded test —
+      // there are no answers to review.
+      if (activeTab === "Speaking") return null;
+
+      const bd = tabTest.result?.breakdown;
+      if (!bd || Object.keys(bd).length === 0) return null;
+      return (
+        <>
+          <SectionDivider label="Your Answers vs Correct Answers" />
+          <AnswerBreakdown breakdown={bd} />
+        </>
+      );
     }
 
     // ── TOEFL ──
@@ -576,23 +657,13 @@ const getTOEFLNote = (score) => {
 
       if (activeTab === "Speaking") return null;
       const bd = tabTest.result?.breakdown;
-      if (!bd || Object.keys(bd).length === 0) {
-        return (
-          <>
-           
-          </>
-        );
-      }
+      if (!bd || Object.keys(bd).length === 0) return null;
       return (
         <>
           <SectionDivider label="Your Answers vs Correct Answers" />
           <AnswerBreakdown breakdown={bd} />
         </>
       );
-
-      // Reading / Listening / Speaking: no answer breakdown anymore
-      return null;
-
     }
 
     // ── GRE ──
@@ -612,23 +683,13 @@ const getTOEFLNote = (score) => {
 
       // Verbal / Quantitative → show answer breakdown
       const bd = tabTest.result?.breakdown;
-      if (!bd || Object.keys(bd).length === 0) {
-        return (
-          <>
-           
-          </>
-        );
-      }
+      if (!bd || Object.keys(bd).length === 0) return null;
       return (
         <>
           <SectionDivider label="Your Answers vs Correct Answers" />
           <AnswerBreakdown breakdown={bd} />
         </>
       );
-
-      // Verbal / Quantitative: no answer breakdown anymore
-      return null;
-
     }
 
     return null;

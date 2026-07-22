@@ -6,6 +6,17 @@ import axios from "axios";
 import getApiBaseUrl from "../utils/api";
 import "react-datepicker/dist/react-datepicker.css";
 
+// Formats a Date using its local calendar fields (not UTC), so the date sent
+// to the backend always matches the day the user actually picked/sees in the
+// confirmation alert — toISOString() would shift it back a day for any
+// positive-UTC-offset timezone (e.g. India, where the test centre is located).
+function toLocalDateString(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function SpeakingTestReady() {
 
   const navigate = useNavigate();
@@ -51,7 +62,7 @@ function SpeakingTestReady() {
           fullname,
           email,
           contact,
-          date: selectedDate.toISOString().split("T")[0]
+          date: toLocalDateString(selectedDate)
         }
       );
 

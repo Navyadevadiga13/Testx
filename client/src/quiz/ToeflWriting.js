@@ -426,6 +426,11 @@ function scoreTask(text, words) {
     diagnostics.push("✓ Response stays focused on the prompt.");
   }
 
+  if (words.length < writingTask.minWords) {
+    score -= 1;
+    diagnostics.push(`⚠️ Only ${words.length} of the recommended ${writingTask.minWords} words were written — a short response limits how fully the task can be fulfilled.`);
+  }
+
   return { score: clamp(score, 0, 6), diagnostics };
 }
 
@@ -763,6 +768,12 @@ function analyzeToeflEssay(essayText, promptText) {
   const toeflScore = clamp(Math.round((composite / 6) * 30), 0, 30);
 
   const warnings = [];
+  if (wordCount < writingTask.minWords) {
+    warnings.push(
+      `⚠️ Your essay is ${writingTask.minWords - wordCount} word(s) short of the recommended ${writingTask.minWords}-word minimum. ` +
+      `This lowers your Task Fulfillment score and applies an additional length penalty to your composite score.`
+    );
+  }
   if (duplicateInfo.duplicateRatio >= 0.15) {
     warnings.push(
       `⚠️ Duplicate content detected: ${duplicateInfo.duplicateSentenceCount} of ${duplicateInfo.totalSentences} sentences are repeated verbatim` +

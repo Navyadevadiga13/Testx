@@ -892,17 +892,30 @@ export default function IeltsListening() {
             {/* REVEAL */}
             {showResult && !isCorrect && (
               <div className="il-answer-reveal">
+                {item.type === "mcq" || item.type === "map" ? (
+                  <div>
+                    Your answer:{" "}
+                    <strong>
+                      {answers[item.id] || "No answer given"}
+                    </strong>
+                  </div>
+                ) : null}
+
                 {fillBlankReason === "over_limit" ? (
-                  <>
+                  <div>
                     Your answer had the right idea but used too many
                     words (limit: {maxWords}). Correct answer:{" "}
                     <strong>{displayAnswer(item.answer)}</strong>
-                  </>
+                  </div>
                 ) : (
-                  <>
+                  <div>
                     Correct answer:{" "}
                     <strong>{displayAnswer(item.answer)}</strong>
-                  </>
+                  </div>
+                )}
+
+                {item.explanation && (
+                  <div>Explanation: {item.explanation}</div>
                 )}
               </div>
             )}
@@ -1047,8 +1060,19 @@ export default function IeltsListening() {
                           className="il-map-td-reveal"
                         >
                           <div className="il-answer-reveal">
-                            Correct answer:{" "}
-                            <strong>{item.answer}</strong>
+                            <div>
+                              Your answer:{" "}
+                              <strong>
+                                {answers[item.id] || "No answer given"}
+                              </strong>
+                            </div>
+                            <div>
+                              Correct answer:{" "}
+                              <strong>{item.answer}</strong>
+                            </div>
+                            {item.explanation && (
+                              <div>Explanation: {item.explanation}</div>
+                            )}
                           </div>
                         </td>
                       </tr>

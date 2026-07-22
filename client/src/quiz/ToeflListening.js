@@ -313,9 +313,22 @@ const PBT_LISTENING_DATA = [
 
 const TOTAL_QUESTIONS = PBT_LISTENING_DATA.length;
 
+// ── Responsive hook (matches ToeflReading.js) ────────────────────────────────
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return width;
+}
+
 // --- COMPONENT ---
 function ToeflListening() {
   const navigate = useNavigate();
+  const width = useWindowWidth();
+  const isMobile = width < 768;
   const [currentIdx, setCurrentIdx] = useState(0);
   const [userAnswers, setUserAnswers] = useState(Array(TOTAL_QUESTIONS).fill(null));
   const [timeLeft, setTimeLeft] = useState(35 * 60);
@@ -381,6 +394,21 @@ const calculateScore = async () => {
   const toeflScore = Math.round((rawScore / total) * 30);
   const percentage = Math.round((rawScore / total) * 100);
 
+  // Per-question review breakdown (used by ToeflResultPage.js)
+  const breakdown = PBT_LISTENING_DATA.map((q, idx) => {
+    const userIdx = userAnswers[idx];
+    const hasAnswer = userIdx !== null && userIdx !== undefined;
+    const entry = {
+      number: q.id,
+      questionText: q.question,
+      userAnswerText: hasAnswer ? q.options[userIdx] : "No answer",
+      correctAnswerText: q.options[q.correctAnswer],
+      isCorrect: userIdx === q.correctAnswer,
+    };
+    if (q.explanation) entry.explanation = q.explanation;
+    return entry;
+  });
+
   try {
 
 const token = localStorage.getItem("token");
@@ -411,7 +439,8 @@ if (!token) {
             rawScore,
             total,
             toeflScore,
-            percentage
+            percentage,
+            breakdown
           }
         })
       });
@@ -431,7 +460,8 @@ if (!token) {
       total,
       toeflScore,
       percentage,
-      testType: "Listening"
+      testType: "Listening",
+      breakdown
     }
   });
 
@@ -439,11 +469,11 @@ if (!token) {
 
   if (testCompleted) {
     return (
-      <div style={containerStyle}>
-        <div style={cardStyle}>
-          <h1 style={{ color: "#097442" }}>Session Concluded</h1>
-          <p style={{ color: "#b4bebd" }}>You have completed the TOEFL PBT Listening test.</p>
-          <button onClick={calculateScore} style={primaryBtnStyle}>Check Your Results</button>
+      <div style={{ ...containerStyle, padding: isMobile ? "90px 14px 16px" : containerStyle.padding }}>
+        <div style={{ ...cardStyle, padding: isMobile ? "0.9rem 1rem" : cardStyle.padding }}>
+          <h1 style={{ color: "#097442", fontSize: isMobile ? "1.2rem" : "1.8rem" }}>Session Concluded</h1>
+          <p style={{ color: "#b4bebd", fontSize: isMobile ? "0.85rem" : "1rem" }}>You have completed the TOEFL PBT Listening test.</p>
+          <button onClick={calculateScore} style={{ ...primaryBtnStyle, fontSize: isMobile ? "0.9rem" : primaryBtnStyle.fontSize, padding: isMobile ? "10px 26px" : primaryBtnStyle.padding }}>Check Your Results</button>
         </div>
       </div>
     );
@@ -452,17 +482,17 @@ if (!token) {
   const currentQ = PBT_LISTENING_DATA[currentIdx];
 
   return (
-    <div style={containerStyle}>
-      <div style={headerStyle}>
-        <h1 style={{ color: "#05914f" }}>TOEFL Listening (PBT)</h1>
+    <div style={{ ...containerStyle, padding: isMobile ? "90px 14px 16px" : containerStyle.padding }}>
+      <div style={{ ...headerStyle, flexWrap: "wrap", gap: isMobile ? "8px" : 0 }}>
+        <h1 style={{ color: "#05914f", fontSize: isMobile ? "1.15rem" : "1.6rem", margin: 0 }}>TOEFL Listening (PBT)</h1>
         <div style={timerBoxStyle}>
-          <span style={{ color: timeLeft < 300 ? "#ff4757" : "#077542", fontSize: "1.4rem", fontWeight: "bold" }}>
+          <span style={{ color: timeLeft < 300 ? "#ff4757" : "#077542", fontSize: isMobile ? "1.1rem" : "1.4rem", fontWeight: "bold" }}>
             {formatTime(timeLeft)}
           </span>
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", color: "#141515" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", color: "#141515", fontSize: isMobile ? "0.85rem" : "1rem", flexWrap: "wrap", gap: "4px" }}>
         <span>Question {currentIdx + 1} of {TOTAL_QUESTIONS}</span>
         <span style={{ color: "#078248" }}>Part {currentQ.part}</span>
       </div>
@@ -471,26 +501,28 @@ if (!token) {
         <div style={{ ...progressBarStyle, width: `${((currentIdx + 1) / TOTAL_QUESTIONS) * 100}%` }} />
       </div>
 
-      <div style={cardStyle}>
-        <div style={audioControlStyle}>
-          <button onClick={playAudio} style={{ ...audioPlayBtnStyle, background: isSpeaking ? "#ff4757" : "#05914f" }}>
+      <div style={{ ...cardStyle, padding: isMobile ? "0.9rem 1rem" : cardStyle.padding }}>
+        <div style={{ ...audioControlStyle, flexWrap: "wrap", gap: isMobile ? "8px" : 0 }}>
+          <button onClick={playAudio} style={{ ...audioPlayBtnStyle, background: isSpeaking ? "#ff4757" : "#05914f", fontSize: isMobile ? "0.82rem" : audioPlayBtnStyle.fontSize, padding: isMobile ? "7px 16px" : audioPlayBtnStyle.padding }}>
             {isSpeaking ? "🔊 Speaking..." : "▶ Play Audio Question"}
           </button>
-          <p style={{ fontSize: "0.9rem", color: "#b4bebd", marginTop: "1rem" }}>
+          <p style={{ fontSize: isMobile ? "0.8rem" : "0.9rem", color: "#b4bebd", marginTop: isMobile ? "0.5rem" : "1rem" }}>
             Click to listen to the conversation and question.
           </p>
         </div>
 <div style={questionAreaStyle}>
-  <h3 style={{ marginBottom: "1rem" }}>Question:</h3>
-  <p style={{ color: "#001211", marginBottom: "2rem" }}>{currentQ.question}</p>
+  <h3 style={{ marginBottom: "1rem", fontSize: isMobile ? "0.95rem" : "1.1rem" }}>Question:</h3>
+  <p style={{ color: "#001211", marginBottom: isMobile ? "1.2rem" : "2rem", fontSize: isMobile ? "0.88rem" : "1rem" }}>{currentQ.question}</p>
 
-  <div style={optionsGridStyle}>
+  <div style={{ ...optionsGridStyle, gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr" }}>
     {currentQ.options.map((opt, i) => (
       <button
         key={i}
         onClick={() => handleSelect(i)}
         style={{
           ...optionBtnStyle,
+          fontSize: isMobile ? "0.82rem" : optionBtnStyle.fontSize,
+          padding: isMobile ? "9px 10px" : optionBtnStyle.padding,
           borderColor: userAnswers[currentIdx] === i ? "#19fd91" : "rgba(255,255,255,0.1)",
           background: userAnswers[currentIdx] === i ? "rgba(25, 253, 145, 0.05)" : "rgba(255,255,255,0.03)"
         }}
@@ -505,12 +537,12 @@ if (!token) {
 </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem", gap: "2rem" }}>
-        <button onClick={() => navigate("/")} style={exitBtnStyle}>Exit Test</button>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: isMobile ? "1.6rem" : "3rem", gap: isMobile ? "1rem" : "2rem", flexWrap: "wrap" }}>
+        <button onClick={() => navigate("/")} style={{ ...exitBtnStyle, fontSize: isMobile ? "0.82rem" : exitBtnStyle.fontSize }}>Exit Test</button>
         <button
           onClick={handleNext}
           disabled={userAnswers[currentIdx] === null}
-          style={{ ...navBtnStyle, opacity: userAnswers[currentIdx] === null ? 0.5 : 1 }}
+          style={{ ...navBtnStyle, fontSize: isMobile ? "0.85rem" : navBtnStyle.fontSize, padding: isMobile ? "9px 22px" : navBtnStyle.padding, opacity: userAnswers[currentIdx] === null ? 0.5 : 1 }}
         >
           {currentIdx === TOTAL_QUESTIONS - 1 ? "Finish Test" : "Next Question"}
         </button>
