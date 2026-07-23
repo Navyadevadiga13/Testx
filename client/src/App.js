@@ -48,6 +48,22 @@ import ToeflWritingInstructions from "./quiz/ToeflWritingInstructions";
 import ToeflResultPage from "./quiz/ToeflResultPage";
 import AdminDashboard from "./components/AdminDashboard";
 
+// --- PGCET MCA TEST ---
+import PgcetmcaMenu from "./quiz/pgcet-mca-test/PgcetmcaMenu";
+import PgcetmcaTest from "./quiz/pgcet-mca-test/PgcetmcaTest";
+// --- PGCET MBA TEST ---
+import PgcetmbaMenu from "./quiz/pgcet-mba-test/PgcetmbaMenu";
+import PgcetmbaTest from "./quiz/pgcet-mba-test/PgcetmbaTest";
+// --- GMAT TEST ---
+import GmatMenu from "./quiz/gmat-test/GmatMenu";
+import GmatTest from "./quiz/gmat-test/GmatTest";
+// --- CAT TEST ---
+import CatMenu from "./quiz/cat-test/CatMenu";
+import CatTest from "./quiz/cat-test/CatTest";
+// --- MAT TEST ---
+import MatMenu from "./quiz/mat-test/MatMenu";
+import MatTest from "./quiz/mat-test/MatTest";
+
 // --- GRE & Other Tests ---
 import Gre_verbal from "./quiz/Gre_verbal";
 import Gre_quantitative from "./quiz/Gre_quantitative";
@@ -258,6 +274,49 @@ function MainContent() {
         } />
         <Route path="/quiz/toefl/result" element={
           <ProtectedRoute isLoggedIn={isLoggedIn}><ToeflResultPage /></ProtectedRoute>
+        } />
+
+        {/* PGCET MCA TEST */}
+        <Route path="/quiz/pgcet" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><PgcetmcaMenu /></ProtectedRoute>
+        } />
+        <Route path="/quiz/pgcet/test" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><PgcetmcaTest /></ProtectedRoute>
+        } />
+
+        {/* PGCET MBA TEST */}
+        <Route path="/quiz/pgcet-mba" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><PgcetmbaMenu /></ProtectedRoute>
+        } />
+        <Route path="/quiz/pgcet-mba/test" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><PgcetmbaTest /></ProtectedRoute>
+        } />
+
+        {/* GMAT TEST */}
+        <Route path="/quiz/gmat" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><GmatMenu /></ProtectedRoute>
+        } />
+        <Route path="/quiz/gmat/practice/:sectionKey" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><GmatTest /></ProtectedRoute>
+        } />
+        <Route path="/quiz/gmat/full" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><GmatTest /></ProtectedRoute>
+        } />
+
+        {/* CAT TEST */}
+        <Route path="/quiz/cat" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><CatMenu /></ProtectedRoute>
+        } />
+        <Route path="/quiz/cat/test" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><CatTest /></ProtectedRoute>
+        } />
+
+        {/* MAT TEST */}
+        <Route path="/quiz/mat" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><MatMenu /></ProtectedRoute>
+        } />
+        <Route path="/quiz/mat/test" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}><MatTest /></ProtectedRoute>
         } />
       </Routes>
 

@@ -4,6 +4,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import getApiBaseUrl from "../utils/api";
 
+import GMAT_CONFIG from "../quiz/gmat-test/GmatConfig";
+import CAT_CONFIG from "../quiz/cat-test/CatConfig";
+import MAT_CONFIG from "../quiz/mat-test/MatConfig";
+import PGCET_MBA_CONFIG from "../quiz/pgcet-mba-test/PgcetmbaConfig";
+import PGCET_MCA_CONFIG from "../quiz/pgcet-mca-test/PgcetmcaConfig";
+
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString("en-US", {
@@ -50,6 +56,31 @@ const wasAttempted = (test) => {
   return false;
 };
 
+// ── Shared helpers for GMAT / CAT / MAT / PGCET (breakdown is keyed by question id) ──
+const filterBreakdownByRange = (breakdown, idRange) => {
+  if (!breakdown || !idRange) return {};
+  const [min, max] = idRange;
+  return Object.fromEntries(
+    Object.entries(breakdown).filter(([id]) => {
+      const n = Number(id);
+      return !Number.isNaN(n) && n >= min && n <= max;
+    })
+  );
+};
+
+const summarizeBreakdown = (breakdown, idRange) => {
+  const subset = filterBreakdownByRange(breakdown, idRange);
+  const entries = Object.values(subset);
+  let correct = 0, attempted = 0, marks = 0;
+  entries.forEach((e) => {
+    const isAttempted = e && e.user !== null && e.user !== undefined && e.user !== "";
+    if (isAttempted) attempted += 1;
+    if (e && e.isCorrect) correct += 1;
+    if (e && typeof e.mark === "number") marks += e.mark;
+  });
+  return { correct, attempted, total: entries.length, marks: Math.round(marks * 100) / 100 };
+};
+
 // ── Score box ──
 const ScoreBox = ({ label, value, isTotal, notAttempted, date }) => (
   <div style={{
@@ -59,7 +90,7 @@ const ScoreBox = ({ label, value, isTotal, notAttempted, date }) => (
     minWidth: "90px", flex: 1, display: "flex", flexDirection: "column",
     alignItems: "center", gap: "4px",
   }}>
-    <div style={{ fontSize: "0.72rem", fontWeight: "700", color: isTotal ? "#a0f0c8" : "#2a7a50", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "2px" }}>{label}</div>
+    <div style={{ fontSize: "0.72rem", fontWeight: "700", color: isTotal ? "#a0f0c8" : "#2a7a50", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "2px", whiteSpace: "pre-line" }}>{label}</div>
     <div style={{ fontSize: isTotal ? "2rem" : "1.75rem", fontWeight: "900", color: isTotal ? "#ffffff" : notAttempted ? "#aaaaaa" : "#1a7a4a", lineHeight: 1 }}>
       {notAttempted ? "-" : value ?? "—"}
     </div>
@@ -328,6 +359,11 @@ function ProfilePage({ onLogout }) {
   const [toeflTab, setToeflTab] = useState("Reading");
   const [ieltsTab, setIeltsTab] = useState("Reading");
   const [greTab, setGreTab] = useState("Verbal");
+  const [gmatTab, setGmatTab] = useState("Quant");
+  const [catTab, setCatTab] = useState("VARC");
+  const [matTab, setMatTab] = useState(MAT_CONFIG.sections[0].label);
+  const [pgcetMbaTab, setPgcetMbaTab] = useState(PGCET_MBA_CONFIG.sections[0].label);
+  const [pgcetMcaTab, setPgcetMcaTab] = useState(PGCET_MCA_CONFIG.sections[0].label);
   const API_URL = getApiBaseUrl();
 
   useEffect(() => {
@@ -614,8 +650,247 @@ const getTOEFLNote = (score) => {
     Analytical:   ["Practice Issue and Argument essay templates.", "Focus on clear thesis and well-structured arguments.", "Read sample high-scoring AWA essays for reference."],
   };
 
+  // ─── GMAT ────────────────────────────────────────────────────────
+  // GMAT question ids don't collide across sections (Quant 1-100, Verbal
+  // 101-200, Data Insights 201-300), so a full-test breakdown can safely
+  // be split per section using these ranges.
+  const gmatIdRanges = {
+    "Quantitative Reasoning": [1, 100],
+    "Verbal Reasoning": [101, 200],
+    "Data Insights": [201, 300],
+  };
+  const gmatTabMeta = [
+    { tab: "Quant", label: "Quantitative Reasoning" },
+    { tab: "Verbal", label: "Verbal Reasoning" },
+    { tab: "Data Insights", label: "Data Insights" },
+  ];
+
+  const gmatAll = testHistory.filter(t => t.testName?.toLowerCase().startsWith("gmat"));
+  const gmatFullTest = gmatAll
+    .filter(t => t.testName === "GMAT Full Practice Test")
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+
+  const findGmatPractice = (label) =>
+    gmatAll
+      .filter(t => t.testName === `GMAT ${label} Practice`)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+
+  const getGmatSectionData = (label) => {
+    const idRange = gmatIdRanges[label];
+    if (gmatFullTest) {
+      const sec = (gmatFullTest.result?.sections || []).find(s => s.label === label);
+      if (sec) {
+        return {
+          score: sec.estimatedSectionScore,
+          raw: sec.raw,
+          date: gmatFullTest.date,
+          breakdown: filterBreakdownByRange(gmatFullTest.result?.breakdown, idRange),
+        };
+      }
+    }
+    const practice = findGmatPractice(label);
+    if (practice) {
+      return {
+        score: practice.result?.estimatedSectionScore,
+        raw: practice.result?.raw,
+        date: practice.date,
+        breakdown: practice.result?.breakdown || {},
+      };
+    }
+    return null;
+  };
+
+  const gmatSectionData = {
+    "Quantitative Reasoning": getGmatSectionData("Quantitative Reasoning"),
+    "Verbal Reasoning": getGmatSectionData("Verbal Reasoning"),
+    "Data Insights": getGmatSectionData("Data Insights"),
+  };
+
+  const anyGMAT = gmatAll.length > 0;
+  const gmatTotal = gmatFullTest ? gmatFullTest.result?.estimatedOverall ?? null : null;
+  const gmatTotalDate = gmatFullTest?.date;
+
+  const gmatTabToTest = {};
+  gmatTabMeta.forEach(({ tab, label }) => {
+    const data = gmatSectionData[label];
+    gmatTabToTest[tab] = data ? { result: { breakdown: data.breakdown } } : null;
+  });
+
+  const gmatSectionTips = {
+    Quant: ["Revise core quant fundamentals — arithmetic, algebra, and geometry.", "Practice data sufficiency questions to build reasoning speed.", "Time yourself strictly on problem sets."],
+    Verbal: ["Practice critical reasoning and reading comprehension daily.", "Focus on sentence correction grammar rules.", "Read dense academic and business articles for comprehension speed."],
+    "Data Insights": ["Practice multi-source reasoning and table analysis questions.", "Get comfortable interpreting graphs and data sets quickly.", "Work on two-part analysis and graphics interpretation questions."],
+  };
+
+  const getGMATSuggestions = () => {
+    const mid = (GMAT_CONFIG.sectionScoreScale.min + GMAT_CONFIG.sectionScoreScale.max) / 2;
+    return gmatTabMeta
+      .map(({ tab, label }) => ({ label: tab, score: gmatSectionData[label]?.score, tips: gmatSectionTips[tab] }))
+      .filter(s => typeof s.score === "number" && s.score < mid);
+  };
+
+  const getGMATNote = (total) => {
+    if (total >= 655) return "Excellent! Highly competitive for top MBA programs worldwide.";
+    if (total >= 605) return "Very good, competitive for many strong business schools.";
+    if (total >= 555) return "Good score, meets requirements for many good MBA programs.";
+    if (total >= 455) return "Fair. Continued practice can meaningfully raise your score.";
+    return "Keep practicing — steady prep leads to strong GMAT gains.";
+  };
+
+  // ─── CAT ─────────────────────────────────────────────────────────
+  const catTest = testHistory
+    .filter(t => t.testName === "CAT Mock Test")
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+
+  const catResult = catTest?.result || null;
+  const catOverall = catResult?.overall || null;
+  const catSections = catResult?.sections || [];
+  const findCatSection = (key) => catSections.find(s => s.key === key) || null;
+
+  const catShortTab = { varc: "VARC", dilr: "DILR", qa: "QA" };
+  const catSectionMeta = CAT_CONFIG.sections.map(s => ({
+    key: s.key,
+    tab: catShortTab[s.key] || s.label,
+    idRange: s.idRange,
+  }));
+
+  const anyCAT = !!catTest;
+
+  const catTabToTest = {};
+  catSectionMeta.forEach(({ key, tab, idRange }) => {
+    catTabToTest[tab] = catResult ? { result: { breakdown: filterBreakdownByRange(catResult.breakdown, idRange) } } : null;
+  });
+
+  const catSectionTips = {
+    VARC: ["Read editorials and opinion pieces daily to build reading speed.", "Practice para-jumbles and summary questions.", "Build vocabulary through contextual reading, not word lists."],
+    DILR: ["Practice data sets under strict time limits.", "Learn to quickly identify the type of DI/LR set before solving.", "Focus on accuracy over attempting every set."],
+    QA: ["Strengthen fundamentals in arithmetic, algebra, and geometry.", "Practice mental math to save time.", "Revise formulas and shortcut techniques regularly."],
+  };
+
+  const getCATSuggestions = () =>
+    catSectionMeta
+      .map(({ key, tab }) => {
+        const sec = findCatSection(key);
+        return { label: tab, score: sec?.score, tips: catSectionTips[tab] };
+      })
+      .filter(s => s.score && s.score.accuracy < 60);
+
+  const getCATNote = (marks) => {
+    if (marks >= 150) return "Outstanding! Highly competitive for top IIMs and premier B-schools.";
+    if (marks >= 110) return "Excellent! Competitive for many top-tier MBA programs.";
+    if (marks >= 70) return "Good score. Meets requirements for several good B-schools.";
+    if (marks >= 30) return "Fair. Focused practice can meaningfully boost your score.";
+    return "Keep practicing — consistent effort will improve your CAT score.";
+  };
+
+  // ─── MAT ─────────────────────────────────────────────────────────
+  const matTest = testHistory
+    .filter(t => t.testName === "MAT Mock Test")
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+
+  const matResult = matTest?.result || null;
+
+  const matSectionMeta = MAT_CONFIG.sections.map(s => ({ key: s.key, label: s.label, idRange: s.idRange }));
+
+  const matSectionTips = {
+    languageComprehension: ["Read varied passages daily to build comprehension speed.", "Practice para-jumbles, para-completion, and critical reasoning.", "Work on vocabulary and inference-based questions."],
+    intelligenceReasoning: ["Practice puzzles, syllogisms, and logical sequences regularly.", "Time yourself on reasoning sets to build speed.", "Review common analytical reasoning question patterns."],
+    dataAnalysis: ["Practice data sufficiency and data interpretation sets.", "Get comfortable reading tables, graphs, and charts quickly.", "Focus on accuracy before speed in DI sets."],
+    mathematicalSkills: ["Revise core arithmetic, algebra, and geometry concepts.", "Practice speed calculation techniques.", "Solve previous years' MAT quant sets under time pressure."],
+    economicBusiness: ["Stay updated on current economic and business affairs.", "Revise basic economics and business terminology.", "Practice general knowledge questions on business trends."],
+  };
+
+  const matTabToTest = {};
+  matSectionMeta.forEach(({ key, label, idRange }) => {
+    matTabToTest[label] = matResult ? { result: { breakdown: filterBreakdownByRange(matResult.breakdown, idRange) } } : null;
+  });
+
+  const getMATSuggestions = () =>
+    matSectionMeta
+      .map(({ key, label, idRange }) => {
+        const stats = summarizeBreakdown(matResult?.breakdown, idRange);
+        const ratio = stats.total > 0 ? stats.correct / stats.total : 0;
+        return { label, ratio, hasData: !!matResult, tips: matSectionTips[key] };
+      })
+      .filter(s => s.hasData && s.ratio < 0.6);
+
+  const getMATNote = (composite) => {
+    if (composite >= 700) return "Excellent! Highly competitive score for top B-schools accepting MAT.";
+    if (composite >= 600) return "Very good. Meets requirements for many reputed institutes.";
+    if (composite >= 500) return "Good. Suitable for a solid range of MBA colleges.";
+    if (composite >= 400) return "Fair. Focused preparation can meaningfully raise your score.";
+    return "Keep practicing — every bit of preparation helps raise your MAT score.";
+  };
+
+  // ─── PGCET MBA ───────────────────────────────────────────────────
+  const pgcetMbaTest = testHistory
+    .filter(t => t.testName === "PGCET MBA Mock Test")
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+
+  const pgcetMbaResult = pgcetMbaTest?.result || null;
+  const pgcetMbaSectionMeta = PGCET_MBA_CONFIG.sections.map(s => ({ key: s.key, label: s.label, idRange: s.idRange }));
+
+  const pgcetMbaSectionTips = {
+    computerAwareness: ["Revise computer fundamentals, MS Office, and basic networking.", "Practice previous years' computer awareness questions.", "Stay updated on common tech terms and abbreviations."],
+    analyticalReasoning: ["Practice puzzles, seating arrangements, and syllogisms.", "Work on blood relations and direction sense questions.", "Time yourself to improve solving speed."],
+    quantitativeAnalysis: ["Revise arithmetic, percentages, ratios, and averages.", "Practice data interpretation questions regularly.", "Focus on shortcut calculation techniques."],
+    englishLanguage: ["Read English newspapers and articles daily.", "Practice grammar, vocabulary, and comprehension questions.", "Work on error-spotting and sentence correction."],
+    generalKnowledge: ["Follow current affairs and general awareness sources regularly.", "Revise static GK topics like history, geography, and polity.", "Practice previous years' GK question sets."],
+  };
+
+  const pgcetMbaTabToTest = {};
+  pgcetMbaSectionMeta.forEach(({ key, label, idRange }) => {
+    pgcetMbaTabToTest[label] = pgcetMbaResult ? { result: { breakdown: filterBreakdownByRange(pgcetMbaResult.breakdown, idRange) } } : null;
+  });
+
+  const getPGCETMbaSuggestions = () =>
+    pgcetMbaSectionMeta
+      .map(({ key, label, idRange }) => {
+        const stats = summarizeBreakdown(pgcetMbaResult?.breakdown, idRange);
+        const ratio = stats.total > 0 ? stats.correct / stats.total : 0;
+        return { label, ratio, hasData: !!pgcetMbaResult, tips: pgcetMbaSectionTips[key] };
+      })
+      .filter(s => s.hasData && s.ratio < 0.6);
+
+  // ─── PGCET MCA ───────────────────────────────────────────────────
+  const pgcetMcaTest = testHistory
+    .filter(t => t.testName === "PGCET MCA Mock Test")
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+
+  const pgcetMcaResult = pgcetMcaTest?.result || null;
+  const pgcetMcaSectionMeta = PGCET_MCA_CONFIG.sections.map(s => ({ key: s.key, label: s.label, idRange: s.idRange }));
+
+  const pgcetMcaSectionTips = {
+    mathematics: ["Revise core mathematics topics — algebra, calculus, and statistics.", "Practice numerical problems under time pressure.", "Focus on speed and accuracy in calculations."],
+    computerAwareness: ["Revise computer fundamentals, data structures, and basic networking.", "Practice previous years' computer awareness questions.", "Stay updated on common tech terms and abbreviations."],
+    analyticalReasoning: ["Practice puzzles, seating arrangements, and syllogisms.", "Work on blood relations and direction sense questions.", "Time yourself to improve solving speed."],
+    generalAwareness: ["Follow current affairs and general knowledge sources regularly.", "Revise static GK and important recent events.", "Practice previous years' general awareness sets."],
+    generalEnglish: ["Practice grammar and vocabulary exercises regularly.", "Read English articles to build comprehension speed.", "Work on sentence correction and error spotting."],
+  };
+
+  const pgcetMcaTabToTest = {};
+  pgcetMcaSectionMeta.forEach(({ key, label, idRange }) => {
+    pgcetMcaTabToTest[label] = pgcetMcaResult ? { result: { breakdown: filterBreakdownByRange(pgcetMcaResult.breakdown, idRange) } } : null;
+  });
+
+  const getPGCETMcaSuggestions = () =>
+    pgcetMcaSectionMeta
+      .map(({ key, label, idRange }) => {
+        const stats = summarizeBreakdown(pgcetMcaResult?.breakdown, idRange);
+        const ratio = stats.total > 0 ? stats.correct / stats.total : 0;
+        return { label, ratio, hasData: !!pgcetMcaResult, tips: pgcetMcaSectionTips[key] };
+      })
+      .filter(s => s.hasData && s.ratio < 0.6);
+
+  const getPGCETNote = (percentage) => {
+    if (percentage >= 80) return "Excellent! Strong performance for PGCET admissions.";
+    if (percentage >= 60) return "Good score. Competitive for several PGCET-affiliated colleges.";
+    if (percentage >= 40) return "Fair. More practice can help raise your percentile.";
+    return "Keep practicing to build a stronger PGCET score.";
+  };
+
   // ─── Render breakdown panel ───────────────────────────────────────
-  const renderBreakdownPanel = ({ activeTab, isIelts, isToefl, isGre, breakdownMap }) => {
+  const renderBreakdownPanel = ({ activeTab, isIelts, isToefl, isGre, isGeneric, breakdownMap }) => {
     const tabTest = breakdownMap[activeTab];
 
     // ── IELTS ──
@@ -657,13 +932,23 @@ const getTOEFLNote = (score) => {
 
       if (activeTab === "Speaking") return null;
       const bd = tabTest.result?.breakdown;
-      if (!bd || Object.keys(bd).length === 0) return null;
+      if (!bd || Object.keys(bd).length === 0) {
+        return (
+          <>
+           
+          </>
+        );
+      }
       return (
         <>
           <SectionDivider label="Your Answers vs Correct Answers" />
           <AnswerBreakdown breakdown={bd} />
         </>
       );
+
+      // Reading / Listening / Speaking: no answer breakdown anymore
+      return null;
+
     }
 
     // ── GRE ──
@@ -683,14 +968,26 @@ const getTOEFLNote = (score) => {
 
       // Verbal / Quantitative → show answer breakdown
       const bd = tabTest.result?.breakdown;
-      if (!bd || Object.keys(bd).length === 0) return null;
+      if (!bd || Object.keys(bd).length === 0) {
+        return (
+          <>
+           
+          </>
+        );
+      }
       return (
         <>
           <SectionDivider label="Your Answers vs Correct Answers" />
           <AnswerBreakdown breakdown={bd} />
         </>
       );
+
+      // Verbal / Quantitative: no answer breakdown anymore
+      return null;
+
     }
+
+    // GMAT / CAT / MAT / PGCET: no answer breakdown
 
     return null;
   };
@@ -700,7 +997,7 @@ const getTOEFLNote = (score) => {
     title, subtitle, scoreBoxes, totalBox,
     sectionTabs, activeTab, onTabChange,
     sectionTips, suggestions, note, sessionWarning,
-    isIelts, isToefl, isGre, breakdownMap,
+    isIelts, isToefl, isGre, isGeneric, breakdownMap,
   }) => (
     <div style={{ background: "#ffffff", border: "1px solid #e0e0e0", borderRadius: "16px", padding: "2rem", marginBottom: "2rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
       {/* Header */}
@@ -744,7 +1041,7 @@ const getTOEFLNote = (score) => {
           <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#333", marginBottom: "8px" }}>📚 Tips for {activeTab}</div>
           <ImprovementCard tips={sectionTips[activeTab] || []} />
 
-          {renderBreakdownPanel({ activeTab, isIelts, isToefl, isGre, breakdownMap: breakdownMap || {} })}
+          {renderBreakdownPanel({ activeTab, isIelts, isToefl, isGre, isGeneric, breakdownMap: breakdownMap || {} })}
         </div>
       </div>
     </div>
@@ -870,6 +1167,135 @@ totalBox:
             note: greTotal ? getGRENote(greTotal) : null,
             isGre: true,
             breakdownMap: greTabToTest,
+          })}
+
+          {/* GMAT */}
+          {anyGMAT && renderTestBlock({
+            title: "Practice Test Results",
+            subtitle: "Test GMAT Practice Test",
+            totalBox: gmatTotal !== null ? { value: gmatTotal, date: gmatTotalDate } : null,
+            scoreBoxes: gmatTabMeta.map(({ tab, label }) => {
+              const data = gmatSectionData[label];
+              return {
+                label: tab,
+                value: data ? `${data.score}/90` : null,
+                notAttempted: !data,
+                date: data?.date,
+              };
+            }),
+            sectionTabs: gmatTabMeta.map(m => m.tab),
+            activeTab: gmatTab,
+            onTabChange: setGmatTab,
+            sectionTips: gmatSectionTips,
+            suggestions: getGMATSuggestions(),
+            note: gmatTotal !== null ? getGMATNote(gmatTotal) : null,
+            isGeneric: true,
+            breakdownMap: gmatTabToTest,
+          })}
+
+          {/* CAT */}
+          {anyCAT && renderTestBlock({
+            title: "Practice Test Results",
+            subtitle: "Test CAT Mock Test",
+            totalBox: catOverall ? { value: catOverall.marks, date: catTest?.date } : null,
+            scoreBoxes: catSectionMeta.map(({ key, tab }) => {
+              const sec = findCatSection(key);
+              return {
+                label: tab,
+                value: sec ? sec.score.marks : null,
+                notAttempted: !sec,
+                date: catTest?.date,
+              };
+            }),
+            sectionTabs: catSectionMeta.map(m => m.tab),
+            activeTab: catTab,
+            onTabChange: setCatTab,
+            sectionTips: catSectionTips,
+            suggestions: getCATSuggestions(),
+            note: catOverall ? getCATNote(catOverall.marks) : null,
+            isGeneric: true,
+            breakdownMap: catTabToTest,
+          })}
+
+          {/* MAT */}
+          {matTest && renderTestBlock({
+            title: "Practice Test Results",
+            subtitle: "Test MAT Mock Test",
+            totalBox: matResult ? { value: `${matResult.composite}/${MAT_CONFIG.compositeScale.max}`, date: matTest.date } : null,
+            scoreBoxes: matSectionMeta.map(({ key, label, idRange }) => {
+              const stats = summarizeBreakdown(matResult?.breakdown, idRange);
+              return {
+                label,
+                value: matResult ? `${stats.correct}/${stats.total}` : null,
+                notAttempted: !matResult,
+                date: matTest?.date,
+              };
+            }),
+            sectionTabs: matSectionMeta.map(m => m.label),
+            activeTab: matTab,
+            onTabChange: setMatTab,
+            sectionTips: matSectionMeta.reduce((acc, { key, label }) => {
+              acc[label] = matSectionTips[key];
+              return acc;
+            }, {}),
+            suggestions: getMATSuggestions(),
+            note: matResult ? `${getMATNote(matResult.composite)} Estimated percentile: ${matResult.percentile}%.` : null,
+            isGeneric: true,
+            breakdownMap: matTabToTest,
+          })}
+
+          {/* PGCET MBA */}
+          {pgcetMbaTest && renderTestBlock({
+            title: "Practice Test Results",
+            subtitle: "Test PGCET MBA Mock Test",
+            totalBox: pgcetMbaResult ? { value: `${pgcetMbaResult.score}/${pgcetMbaResult.total}`, date: pgcetMbaTest.date } : null,
+            scoreBoxes: pgcetMbaSectionMeta.map(({ key, label, idRange }) => {
+              const stats = summarizeBreakdown(pgcetMbaResult?.breakdown, idRange);
+              return {
+                label,
+                value: pgcetMbaResult ? `${stats.correct}/${stats.total}` : null,
+                notAttempted: !pgcetMbaResult,
+                date: pgcetMbaTest?.date,
+              };
+            }),
+            sectionTabs: pgcetMbaSectionMeta.map(m => m.label),
+            activeTab: pgcetMbaTab,
+            onTabChange: setPgcetMbaTab,
+            sectionTips: pgcetMbaSectionMeta.reduce((acc, { key, label }) => {
+              acc[label] = pgcetMbaSectionTips[key];
+              return acc;
+            }, {}),
+            suggestions: getPGCETMbaSuggestions(),
+            note: pgcetMbaResult ? getPGCETNote(pgcetMbaResult.percentage) : null,
+            isGeneric: true,
+            breakdownMap: pgcetMbaTabToTest,
+          })}
+
+          {/* PGCET MCA */}
+          {pgcetMcaTest && renderTestBlock({
+            title: "Practice Test Results",
+            subtitle: "Test PGCET MCA Mock Test",
+            totalBox: pgcetMcaResult ? { value: `${pgcetMcaResult.score}/${pgcetMcaResult.total}`, date: pgcetMcaTest.date } : null,
+            scoreBoxes: pgcetMcaSectionMeta.map(({ key, label, idRange }) => {
+              const stats = summarizeBreakdown(pgcetMcaResult?.breakdown, idRange);
+              return {
+                label,
+                value: pgcetMcaResult ? `${stats.correct}/${stats.total}` : null,
+                notAttempted: !pgcetMcaResult,
+                date: pgcetMcaTest?.date,
+              };
+            }),
+            sectionTabs: pgcetMcaSectionMeta.map(m => m.label),
+            activeTab: pgcetMcaTab,
+            onTabChange: setPgcetMcaTab,
+            sectionTips: pgcetMcaSectionMeta.reduce((acc, { key, label }) => {
+              acc[label] = pgcetMcaSectionTips[key];
+              return acc;
+            }, {}),
+            suggestions: getPGCETMcaSuggestions(),
+            note: pgcetMcaResult ? getPGCETNote(pgcetMcaResult.percentage) : null,
+            isGeneric: true,
+            breakdownMap: pgcetMcaTabToTest,
           })}
 
           {/* Empty state */}

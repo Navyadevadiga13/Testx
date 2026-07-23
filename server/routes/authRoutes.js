@@ -1,5 +1,3 @@
-
-
 // server/routes/authRoutes.js
 
 const router = require('express').Router();
@@ -124,17 +122,55 @@ router.post("/admin/login", (req, res) => {
     msg: "Invalid credentials",
   });
 });
- 
 
+
+// =====================================
+// ADMIN: LIST USERS (sorted by most recent test activity)
+// =====================================
+// Previously this just did User.find().sort({ createdAt: -1 }), which
+// meant the frontend had no real "lastTestDate" to sort on — every user
+// fell back to their signup time, so newer accounts could outrank users
+// who'd actually tested more recently.
+//
+// Fix: pull the most-recent TestResult.date per user straight from the
+// TestResult collection via aggregation, attach it to each user as
+// `lastTestDate`, and sort so that:
+//   1) anyone with test activity ranks above anyone with none, and
+//   2) within each group, most-recent activity comes first.
 router.get('/admin/users', adminAuth, async (req, res) => {
   try {
     const users = await User.find()
-      .select('-password') // 🔐 hide password
-      .sort({ createdAt: -1 });
+      .select('-password')
+      .lean();
+
+    // One row per user: the max(date) among their TestResult docs.
+    const lastTests = await TestResult.aggregate([
+      { $group: { _id: "$user", lastTestDate: { $max: "$date" } } }
+    ]);
+
+    const lastTestMap = {};
+    lastTests.forEach((t) => {
+      if (t._id) lastTestMap[t._id.toString()] = t.lastTestDate;
+    });
+
+    const usersWithLastTest = users.map((u) => ({
+      ...u,
+      lastTestDate: lastTestMap[u._id.toString()] || null,
+    }));
+
+    usersWithLastTest.sort((a, b) => {
+      const aHas = !!a.lastTestDate;
+      const bHas = !!b.lastTestDate;
+      if (aHas !== bHas) return aHas ? -1 : 1; // test-takers first
+
+      const aTime = new Date(aHas ? a.lastTestDate : a.createdAt).getTime();
+      const bTime = new Date(bHas ? b.lastTestDate : b.createdAt).getTime();
+      return bTime - aTime; // most recent first
+    });
 
     res.json({
-      totalUsers: users.length,
-      users
+      totalUsers: usersWithLastTest.length,
+      users: usersWithLastTest
     });
 
   } catch (err) {
@@ -392,5 +428,4 @@ router.post('/reset-password', async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 module.exports = router;
